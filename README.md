@@ -1,5 +1,8 @@
 # OPB-trgovalno_zabavna_aplikacija
 
+Aplikacija združuje klaično trgovanje z delnicami in igranje igre Ultimate Texas Hold'em. Uporabnik investira v izbran porfelj delnic in indeksov, nato pa lahko po želji s tem kapitalom igra priljubljeno igro poker. Z vsako zmago in porazom v igri se proporcionalno spreminja vrednost kapitala v izbrani delnici. Podatke o cenah delnic bomo pridobili iz izbranega API-ja in "live" prenašali na našo bazo. Delovanje igre bo posebej implementirano v Pythonu. Poleg tega bo aplikacija ponujala poseben POKER index, katerega cena je odvisna tako kot vrednosti delnic, ki ga sestavljajo, kot od kombinacij, ki so bile odigrane v igri. Okvirna zgradba baz je dostopna v ERdiagram.png.
+
+## Marketinška reklama
 Medtem ko čakaš, da se tvoj portfelj odloči za naslednjo potezo, lahko preizkusiš svojo srečo in spretnost v pravem Ultimate Texas Hold’emu. Aplikacija ni le pasivno sledenje trgom, ampak je živahna simbioza, kjer vsaka tvoja odločitev za poker mizo odmeva v tvojem investicijskem portfelju, tvoj kapital pa nikoli ne miruje. Medtem, ko delnice delujejo v ozadju, lahko s svojimi veščinami aktivno kreiraš dodano vrednost. Gre za edinstven pristop, ki spreminja pravila tako investiranja kot igranja pokra.
 Predstavljaj si: ko trguješ, igraš poker, ko igraš poker, trguješ. Ko staviš s svojimi "žetoni", ne igraš samo za trenutni dobitek, temveč oblikuješ prihodnost svojega kapitala. Zmaga pomeni neposreden vpliv na rast portfelja, izguba pa postane izziv za prilagoditev strategije. To ni zgolj igra sreče, temveč virtuozna kombinacija analitičnega razmišljanja, psihološke vzdržljivosti in finančne preglednosti.
 
