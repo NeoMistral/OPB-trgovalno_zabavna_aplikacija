@@ -1,0 +1,35 @@
+# Ignore OS-generated files
+.DS_Store          # macOS
+Thumbs.db          # Windows
+desktop.ini        # Windows
+
+# Ignore IDE files
+.idea/             # JetBrains (PyCharm, IntelliJ)
+.vscode/           # VS Code
+*.swp              # Vim swap files
+
+# Ignore Python files
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.log
+*.pot
+venv/              # Virtual environment
+env/
+.python-version
+
+# Ignore Node.js files
+node_modules/
+npm-debug.log
+
+# Ignore compiled files
+*.class            # Java
+*.exe              # Windows executable
+*.dll              # Windows library
+*.so               # Linux library
+*.o                # Compiled object files
+
+# Ignore logs and databases
+*.log
+*.sqlite
+*.db
