@@ -1,0 +1,44 @@
+For virtual enviroment
+Virtualno okolje
+Najprej poskrbimo, da imamo naloženo knjižnjico virtualenv z uporabo pip ukaza:
+
+pip install virtualenv
+Nato se premaknemo v mapo projekta in ustvarimo virtualno okolje z ukazom:
+
+python<version> -m venv env
+Mapa z imenom env bi se morala ustvarit.
+
+Virtualno okolje sedaj aktiviramo z (linux, macOS):
+
+source env/bin/activate
+Opomba: V okolju windows se virtualno okolje aktivira malo drugače in sicer:
+
+env\Scripts\activate
+V okolje moramo sedaj naložiti vse python pakete, ki jih bomo uporabljali. To naredimo z ukazom:
+
+env/bin/pip3 install -r requirenments_mac.txt 
+Zopet je ukaz za windows okolje malo drugačen:
+
+env\Scripts\pip install -r requirenments.txt
+Pomembno: Za delo v vs code, je kdaj potrebno virtualno okolje izbrati kot python interpreter. To preprosto naredimo, da kliknemo na python ikonco v desnem spodnjem kotu. Mora biti nekaj takega: Python ('env': venv)
+
+Poleg tega, za delo v vs code predlagam tudi vzpostavitev launch.json datoteke. Recimo:
+
+{
+
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceRoot}",
+            "justMyCode": true,
+            "env": {"PYTHONPATH": "${workspaceFolder}/"}
+        }
+    ]
+}
+Splošni nasveti
+Predlagam, da kodo strukturirate po vzorčnem primeru iz repozitorija struktura projekta. Kot je razvidno iz zgornje povezave, se je najbolj smiselno dela lotit na enega izmed naslednjih načinov: * Najprej uredite podatkovni nivo (še pred tem pa seveda samo strukturo in shemo baze). Nato se lotite aplikacijskega ter nakoncu šele predstavitvenega nivoja. * Najprej uredite bazo ter podatkovni nivo, ampak pri tem ni potrebno, da to zaključite v celoti. Izberete si lahko recimo eno ali dve entiteti ter za njih implementirajte pripadajoče metode v podatkovnem, aplikacijskem in predstavitvenem nivoju. Nato nadaljujete, da dodajate nove entitete ter funkcionalnosti aplikacije.
