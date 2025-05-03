@@ -499,7 +499,7 @@ def play_game():
 
 
 #========================================================================================================
-
+# Functiosn for poker api
 def deal_cards(players = 1):
     deck_copy = deck.copy()
     random.shuffle(deck_copy)
@@ -507,6 +507,58 @@ def deal_cards(players = 1):
     for i in range(7 + players * 2):
         all_cards.append(deal_card(deck_copy))
     return all_cards
+
+def calculate_game(game_data):
+    player_hand = game_data["player_cards"] + game_data["community_cards"]
+    dealer_hand = game_data["dealer_cards"] + game_data["community_cards"]
+
+    ante = game_data["ante"]
+    blind = game_data["blind"]
+    bet_round = game_data["round_when_bet"]
+
+    # evaluate cards
+    player_combination = get_best_hand(player_hand)
+    dealer_combination = get_best_hand(dealer_hand)
+
+    if bet_round == 3:
+        return "dealer", -(ante + blind)
+
+    # set ordered winning combinations
+    winning_hands = ["High Card", "One Pair", "Two Pair", "Three of a Kind", "Straight", "Flush", 
+                     "Full House", "Four of a Kind", "Straight Flush", "Royal Flush"]
+    
+    # decide winner
+    winner = None
+    if winning_hands.index(player_combination) > winning_hands.index(dealer_combination):
+
+        winner = "player"
+
+    elif winning_hands.index(player_combination) == winning_hands.index(dealer_combination):
+        result = decider(player_combination, player_hand, dealer_combination, dealer_hand)
+
+        if result == "player": 
+            winner = "player"
+
+        elif result == "dealer":
+            winner = "dealer"
+
+        else: 
+            winner = "tie"
+
+    else:
+        winner = "dealer"
+
+    dealer_has_something = dealer_has_pair_or_better(dealer_hand, game_data["community_cards"])
+    blind_won = has_blind(blind, player_combination) - blind
+    # calculate winnings
+    if winner == "player":
+        winnings = game_data["bet"] + blind_won + (ante if dealer_has_something else 0)
+    elif winner == "dealer":
+        winnings = -(ante + blind + game_data["bet"])
+    else:
+        winnings = 0
+
+    return winner, winnings
 
 def trips_payout(iter=1000):
     global budget
