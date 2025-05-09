@@ -3,27 +3,32 @@
 Thumbs.db          # Windows
 desktop.ini        # Windows
 
-# Ignore IDE files
+# Ignore IDE/project files
 .idea/             # JetBrains (PyCharm, IntelliJ)
 .vscode/           # VS Code
 *.swp              # Vim swap files
 
-# Ignore Python files
+# Ignore Python-related files
 __pycache__/
 *.py[cod]
 *.egg-info/
 *.log
 *.pot
 config.py
-venv/              # Virtual environment
+.venv/
+venv/
 env/
 .python-version
 
-# Ignore Node.js files
+# Ignore environment variables
+.env
+*.env
+
+# Ignore Node.js-related files
 node_modules/
 npm-debug.log
 
-# Ignore compiled files
+# Ignore compiled/binary files
 *.class            # Java
 *.exe              # Windows executable
 *.dll              # Windows library
