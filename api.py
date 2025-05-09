@@ -120,6 +120,6 @@ def main_loop(interval_seconds=30):
 
 if __name__ == "__main__":
     try:
-        main_loop(interval_seconds=30)
+        main_loop(interval_seconds=30) # bomo se zmenili koliko
     except KeyboardInterrupt:
-        print("\n🛑 Uporabnik je prekinil izvajanje. Izhod.")
+        print("\n🛑 Uporabnik je prekinil izvajanje. Izhod.") 
