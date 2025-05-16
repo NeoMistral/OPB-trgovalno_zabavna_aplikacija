@@ -5,7 +5,7 @@ import os
 from datetime import datetime
 import time
 
-load_dotenv(dotenv_path="kljuc.env")
+load_dotenv(dotenv_path="key.env")
 
 api_key = os.getenv("FINNHUB_API_KEY")
 finnhub_client = finnhub.Client(api_key=api_key)
@@ -101,13 +101,23 @@ def main_loop(interval_seconds=30):
                 port=os.getenv("DB_PORT")
             )
             cur = conn.cursor()
+
+            cur.execute("""
+                INSERT INTO arhiv (simbol, trenutna_cena)
+                SELECT simbol, trenutna_cena FROM delnice
+                ON CONFLICT (simbol) DO UPDATE
+                SET trenutna_cena = EXCLUDED.trenutna_cena
+            """)
+
             cur.execute("DELETE FROM delnice;")
             conn.commit()
             cur.close()
             conn.close()
-            print("Obstoječi podatki so bili izbrisani.")
+
+            print("✅ Arhivirana cena in brisanje tabele delnice uspešno.")
+
         except Exception as e:
-            print(f"Napaka pri brisanju podatkov iz tabele: {e}")
+            print(f"❌ Napaka pri arhiviranju ali brisanju: {e}")
 
         for symbol in symbols:
             data = get_stock_data(symbol)
@@ -116,6 +126,7 @@ def main_loop(interval_seconds=30):
 
         print(f"Konec osveževanja, čakam {interval_seconds} sekund pred naslednjo iteracijo.\n")
         time.sleep(interval_seconds)
+
 
 
 if __name__ == "__main__":
