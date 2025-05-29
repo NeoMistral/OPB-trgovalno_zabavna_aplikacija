@@ -50,17 +50,44 @@ p {
 
 /* Footer styling */
 footer {
+    margin-top: auto;
     gap: 50px;
     background-color: #2c2c2c;
     color: #cccccc;
     text-align: center;
     padding: 0px 0;       /* smaller padding */
-    margin: 0;
+    /*margin: 0;*/
     flex-shrink: 0;       /* never shrink away */
 }
 
 .btn {
     display: inline-block;
+    padding: 10px 20px;
+    background-color: #ff5722;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    margin-top: 20px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.btnpoker {
+    display: inline-block;
+    width: 155px;
+    padding: 10px 20px;
+    background-color: #ff5722;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    margin-top: 20px;
+    font-weight: bold;
+    transition: background-color 0.3s yease;
+}
+
+.btntrading {
+    display: inline-block;
+    width: 150px;
     padding: 10px 20px;
     background-color: #ff5722;
     color: white;
@@ -169,4 +196,62 @@ footer {
     background-color: #555;
     cursor: not-allowed;
     opacity: 0.6;
+}
+
+.top-right {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+}
+
+.top-right button {
+    margin-left: 10px;
+    padding: 8px 14px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+/* Modal styles */
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 1; 
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%; 
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; 
+    padding: 20px;
+    border-radius: 10px;
+    width: 300px;
+    text-align: center;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#stock-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+#stock-table th, #stock-table td {
+    border: 1px solid #000000;
+    padding: 8px 12px;
+    text-align: left;
+}
+
+#stock-table thead {
+    background-color: #1e0d0d;
 }

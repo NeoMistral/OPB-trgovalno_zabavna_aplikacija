@@ -17,6 +17,10 @@ session memory for just games.
 def home():
     return template("home")
 
+#trading page
+@route("/trading")
+def trading():
+    return template("trading")
 
 #poker page
 @route("/poker")
@@ -69,6 +73,19 @@ def set_game_settings():
     poker_api.set_game_data(int(data.get('blind', 1)), int(data.get('ante', 1)))
     response.content_type = 'application/json'
     return json.dumps({'status': 'success'})
+
+#temporary
+def get_stock_prices():
+    return [
+        {'symbol': 'AAPL', 'price': 192.35},
+        {'symbol': 'GOOGL', 'price': 2841.45},
+        {'symbol': 'AMZN', 'price': 3467.42}
+    ]
+# API route to return stock prices as JSON
+@route('/api/stocks')
+def api_stocks():
+    response.content_type = 'application/json'
+    return json.dumps(get_stock_prices())
 
 
 
