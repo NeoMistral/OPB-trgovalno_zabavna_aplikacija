@@ -136,6 +136,13 @@ footer {
     background-color: #e64a19;
 }
 
+.btnpoker:hover {
+    background-color: #e64a19;
+}
+.btntrading:hover {
+    background-color: #e64a19;
+}
+
 .button-box {
     display: flex;
     flex-direction: column;
@@ -198,6 +205,18 @@ footer {
     opacity: 0.6;
 }
 
+.btnpoker:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.btntrading:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
 .top-right {
     position: absolute;
     top: 10px;
@@ -205,6 +224,19 @@ footer {
 }
 
 .top-right button {
+    margin-left: 10px;
+    padding: 8px 14px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.bottom-right {
+    position: absolute;
+    bottom: 10px;
+    right: 20px;
+}
+
+.bottom-right button {
     margin-left: 10px;
     padding: 8px 14px;
     font-size: 14px;
@@ -224,7 +256,7 @@ footer {
 }
 
 .modal-content {
-    background-color: #fefefe;
+    background-color: #323232;
     margin: 15% auto; 
     padding: 20px;
     border-radius: 10px;
@@ -254,4 +286,20 @@ footer {
 
 #stock-table thead {
     background-color: #1e0d0d;
+}
+
+#portfolio-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 30px;
+}
+
+#portfolio-table th, #portfolio-table td {
+    border: 1px solid #762a2a;
+    padding: 8px 12px;
+    text-align: left;
+}
+
+#portfolio-table thead {
+    background-color: #005d1f85;
 }
