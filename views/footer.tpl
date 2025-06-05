@@ -1,6 +1,6 @@
 
 <footer>
-    <p>&copy; OBN-Solutions 2025</p>
+    <p>&copy; OBN²-Solutions 2025</p>
 </footer>
 </body>
 </html>
