@@ -160,6 +160,9 @@ def set_game_settings():
     session.save()
     return json.dumps({'status': 'success'})
 
+# - BAZE (false če ne obstaja)
+def get_user(username, password):
+    pass
 @route('/login', method='POST')
 def login():
     session = request.environ.get('beaker.session')
@@ -178,7 +181,7 @@ def login():
         response.content_type = 'application/json'
         return json.dumps({'status': 'fail', 'error': 'Invalid credentials'})
     
-#temporary
+#temporary - BAZE
 def get_stock_prices():
     return [
         {'symbol': 'AAPL', 'price': 192.35},
@@ -191,11 +194,11 @@ def api_stocks():
     response.content_type = 'application/json'
     return json.dumps(get_stock_prices())
 
-#get user balance
+#get user balance - BAZE 
 def get_user_balance(user_id):
     return 1234
 
-#get user portfolio
+#get user portfolio - BAZE
 def get_user_portfolio(user_id):
     return [{"symbol": "O", "amount": 0},
             {"symbol": "B", "amount": 1}]
