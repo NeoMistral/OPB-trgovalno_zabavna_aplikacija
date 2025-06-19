@@ -54,7 +54,7 @@ def api_deal():
     session = request.environ.get('beaker.session')
     # get dealt cards
     player, dealer, community = poker_api.deal_cards()
-    balance = get_user_balance(session.get("user_id"))
+    balance = calculate_budget()
     session["game_data"] = {
         "round": 0,
         "player_cards": player,
@@ -188,11 +188,45 @@ def get_stock_prices():
         {'symbol': 'GOOGL', 'price': 2841.45},
         {'symbol': 'AMZN', 'price': 3467.42}
     ]
+
+# Compute budget based on selected stock BAZE - update number of owned stocks
+@route('/api/budget', method='POST')
+def calculate_budget():
+    try:
+        data = request.json
+        symbol = data.get('stock')  # 'B', for example
+        print(symbol)
+        session = request.environ.get('beaker.session')
+        if 'user_id' not in session:
+            response.status = 401
+            return json.dumps({'error': 'Not logged in'})
+
+        user_id = session['user_id']
+        portfolio = get_user_portfolio(user_id)  # Expecting list of {'symbol': ..., 'amount': ...}
+        print(portfolio)
+        amount = 0
+        for row in portfolio:
+            if row.get("symbol") == symbol:
+                amount = row.get("amount", 0)
+                break
+
+        budget = amount  # Replace with real logic
+
+        response.content_type = 'application/json'
+        return json.dumps({'budget': budget})
+
+    except Exception as e:
+        response.status = 500
+        response.content_type = 'application/json'
+        print(e)
+        return json.dumps({'error': str(e)})
+
 # API route to return stock prices as JSON
 @route('/api/stocks')
 def api_stocks():
     response.content_type = 'application/json'
     return json.dumps(get_stock_prices())
+
 
 #get user balance - BAZE 
 def get_user_balance(user_id):
