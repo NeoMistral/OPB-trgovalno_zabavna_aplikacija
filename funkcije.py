@@ -101,3 +101,76 @@ def get_user_portfolio(user_id):
         if conn:
             cur.close()
             conn.close()
+            
+def get_user_balance(user_id):
+    
+    conn, cur = ustvari_povezavo()
+    
+    try:
+        select_query = sql.SQL(
+            "SELECT stanje FROM denarnica WHERE uporabnik_id = %s"
+        )
+        cur.execute(select_query, (user_id,))
+        balance = cur.fetchone()
+        return balance[0] if balance else None
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        if conn:
+            cur.close()
+            conn.close()
+
+def add_transaction(user_id, stock_id, quantity, value):
+    
+    conn, cur = ustvari_povezavo()
+    
+    try:
+        insert_query = sql.SQL(
+            "INSERT INTO transakcije (uporabnik_id, vrednostni_papir_id, kolicina, vrednost) VALUES (%s, %s, %s, %s)"
+        )
+        cur.execute(insert_query, (user_id, stock_id, quantity, value))
+        conn.commit()
+        print("Transaction added successfully.")
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        if conn:
+            cur.close()
+            conn.close()         
+            
+def update_user_balance(user_id, balance_change):
+    
+    conn, cur = ustvari_povezavo()
+    
+    try:
+        update_query = sql.SQL(
+            "UPDATE denarnica SET stanje = stanje + %s WHERE uporabnik_id = %s"
+        )
+        cur.execute(update_query, (balance_change, user_id))
+        conn.commit()
+        print("User balance updated by change:", balance_change)
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        if conn:
+            cur.close()
+            conn.close()
+            
+            
+def update_portfolio(user_id, stock_id, quantity, value):
+    
+    conn, cur = ustvari_povezavo()
+    
+    try:
+        update_query = sql.SQL(
+            "UPDATE portfelji SET kolicina = %s, vrednost = %s WHERE uporabnik_id = %s AND vrednostni_papir_id = %s"
+        )
+        cur.execute(update_query, (quantity, value, user_id, stock_id))
+        conn.commit()
+        print("Portfolio updated successfully.")
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        if conn:
+            cur.close()
+            conn.close()
