@@ -23,7 +23,7 @@
 </table>
 
 <div style="text-align: center;">
-    <a href="/poker" class="btnpoker">Go to Poker Page</a>
+    <button id="poker-btn" onclick="window.location='/poker'" class="btnpoker">Go to Poker Page</button>
 </div>
 
 <div style="text-align: center;">
@@ -127,13 +127,20 @@
             const data = await res.json();
             if (!data.logged_in) {
                 const btn = document.getElementById('portfolio-btn');
+                const btn2 = document.getElementById('poker-btn')
                 btn.disabled = true;
                 btn.textContent = "Login to Access Portfolio";
                 btn.classList.add("disabled");
+                btn2.disabled = true;
+                btn2.textContent = "Login to Access Poker";
+                btn2.classList.add("disabled");
             } else{
                 const btn = document.getElementById('portfolio-btn');
                 btn.textContent = "Go to portfolio";
                 btn.disabled = false;
+                const btn2 = document.getElementById('poker-btn');
+                btn2.textContent = "Go to Poker";
+                btn2.disabled = false;
             }
         } catch (err) {
             console.error('Failed to check login status:', err);

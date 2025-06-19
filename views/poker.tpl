@@ -51,6 +51,10 @@
             <p id="game-bet">Bet: None</p>
             <p id="game-winner">Winner: TBD</p>
             <p id="game-winnings">Winnings: None</p>
+            <label>
+                Stock:
+                <select id="stock-input"></select>
+            </label><br>
             <p id="game-budget">Budget: 0</p>
             <!-- Input fields for blind and ante -->
             <label>
@@ -187,6 +191,50 @@ function updateCards(containerId, cards) {
     });
 }
 
+async function getStockOptions() {
+    // This would be done asynchronously, e.g., with fetch
+    const response = await fetch('/api/portfolio');
+    const userData = await response.json();
+    return userData
+}
+
+// Call backend to get updated budget
+async function updateBudget(stock) {
+    const res = await fetch('/api/budget', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ stock: stock })
+    });
+
+    const data = await res.json();
+    document.getElementById('game-budget').textContent = `Budget: ${data.budget}`;
+}
+
+async function populateStockOptions() {
+    const stockSelect = document.getElementById('stock-input');
+    stockSelect.innerHTML = ''; // Clear existing options
+
+    const userData = await getStockOptions(); // Await the async call
+    const portfolio = userData.portfolio
+    portfolio.forEach(stock => {
+        const option = document.createElement('option');
+        option.value = stock.symbol; // or stock.id, depending on your data
+        option.textContent = stock.symbol; // Display symbol in the dropdown
+        stockSelect.appendChild(option);
+    });
+
+}
+
+    // Setup event listeners
+    document.addEventListener('DOMContentLoaded', () => {
+        populateStockOptions();
+
+        document.getElementById('stock-input').addEventListener('change', function () {
+            updateBudget(this.value);
+        });
+    });
 
 </script>
 
