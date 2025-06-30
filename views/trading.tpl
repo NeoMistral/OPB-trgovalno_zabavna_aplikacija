@@ -157,16 +157,62 @@
     document.getElementById('sell-amount').addEventListener('input', () => updateTotal('sell'));
     document.getElementById('sell-stock').addEventListener('change', () => updateTotal('sell'));
 
-    document.getElementById('buy-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    // Here you'd POST to /api/buy
-    alert('Buying stock not implemented yet');
+    document.getElementById('buy-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const symbol = document.getElementById('buy-stock').value;
+        const amount = parseInt(document.getElementById('buy-amount').value);
+        const price = currentPrices[symbol];
+
+        if (!symbol || isNaN(amount) || amount <= 0) {
+            alert('Please enter a valid amount.');
+            return;
+        }
+
+        const response = await fetch('/api/buy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ symbol, quantity: amount, price })
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.status === 'ok') {
+            alert(`Successfully bought ${amount} shares of ${symbol}.`);
+            closeModal('buy-modal');
+            updateUserPortfolioTable();
+        } else {
+            alert('Purchase failed: ' + (result.error || 'Unknown error'));
+        }
     });
 
-    document.getElementById('sell-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    // Here you'd POST to /api/sell
-    alert('Selling stock not implemented yet');
+    document.getElementById('sell-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const symbol = document.getElementById('sell-stock').value;
+        const amount = parseInt(document.getElementById('sell-amount').value);
+        const price = currentPrices[symbol];
+
+        if (!symbol || isNaN(amount) || amount <= 0) {
+            alert('Please enter a valid amount.');
+            return;
+        }
+
+        const response = await fetch('/api/sell', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ symbol, quantity: amount, price })
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.status === 'ok') {
+            alert(`Successfully sold ${amount} shares of ${symbol}.`);
+            closeModal('sell-modal');
+            updateUserPortfolioTable();
+        } else {
+            alert('Sale failed: ' + (result.error || 'Unknown error'));
+        }
     });
 
     function openModal(id) {

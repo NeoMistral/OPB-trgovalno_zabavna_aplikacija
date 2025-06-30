@@ -53,7 +53,7 @@
     <div class="modal-content">
         <span class="close" onclick="closeModal('signupModal')">&times;</span>
         <h2>Sign Up</h2>
-        <form action="/signup" method="post">
+        <form id="signup-form" action="/signup" method="post">
             <input type="text" name="username" placeholder="Username" required><br><br>
             <input type="password" name="password" placeholder="Password" required><br><br>
             <button type="submit">Sign Up</button>
@@ -119,6 +119,25 @@
       } else {
         alert('Login failed: ' + (result.error || 'unknown error'));
       }
+    });
+
+    document.getElementById('signup-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const res = await fetch('/signup', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await res.json();
+
+        if (res.ok && result.status === 'ok') {
+            //alert('Sign-up successful! You can now log in.');
+            closeModal('signupModal');
+        } else {
+            alert('Sign-up failed: ' + (result.error || 'unknown error'));
+        }
     });
 
     async function checkLoginStatus() {

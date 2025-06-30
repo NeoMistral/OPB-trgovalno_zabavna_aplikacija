@@ -25,6 +25,8 @@ game_data = {
     "winner": "TBD",
     "budget": 100,
 }
+
+TODO: selling and buying, logging in
 """
 # Configure session storage
 session_opts = {
@@ -163,6 +165,7 @@ def set_game_settings():
 # - BAZE (false če ne obstaja)
 def get_user(username, password):
     pass
+
 @route('/login', method='POST')
 def login():
     session = request.environ.get('beaker.session')
@@ -265,6 +268,66 @@ def api_session():
     session = request.environ.get('beaker.session')
     return {'logged_in': 'user_id' in session}
 
+@route('/signup', method='POST')
+def signup():
+    username = request.forms.get('username')
+    password = request.forms.get('password')
+    # Your user creation logic here
+    print(username, password)
+
+    response.content_type = 'application/json'
+    return json.dumps({'status': 'ok'})
+
+@route('/api/buy', method='POST')
+def api_buy():
+    session = request.environ.get('beaker.session')
+    user = session['username']
+    
+    if not user:
+        return {'status': 'error', 'error': 'Not logged in'}
+
+    data = request.json
+    symbol = data.get('symbol')
+    quantity = data.get('quantity')
+    price = data.get('price')
+
+    if not can_buy(user, symbol, quantity, price):
+        return {'status': 'error', 'error': 'Cannot buy this stock'}
+
+    # Update balance BAZE
+
+    # Update portfolio BAZE
+    return {'status': 'ok'}
+
+@route('/api/sell', method='POST')
+def api_sell():
+    session = request.environ.get('beaker.session')
+    user = session['username']
+
+    if not user:
+        return {'status': 'error', 'error': 'Not logged in'}
+
+    data = request.json
+    symbol = data.get('symbol')
+    quantity = data.get('quantity')
+    price = data.get('price')
+
+    if not can_sell(user, symbol, quantity):
+        return {'status': 'error', 'error': 'Cannot sell this stock'}
+
+    # Update balance
+
+    # Update portfolio
+    
+    return {'status': 'ok'}
+
+# BAZE
+def can_buy(user, symbol, quantity, price):
+    print(user)
+    return True
+
+def can_sell(user, symbol, quantity):
+    return True
 
 app = SessionMiddleware(default_app(), session_opts)
 run(hots="0.0.0.0", port=8080, app=app, debug=True, reloader=True)
