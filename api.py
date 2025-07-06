@@ -39,7 +39,7 @@ def get_stock_data(symbol):
             'timestamp': datetime.fromtimestamp(quote['t']) if quote['t'] else datetime.now()
         }
     except Exception as e:
-        print(f"Napaka pri pridobivanju podatkov za {symbol}: {e}")
+        print(f"❌ Napaka pri pridobivanju podatkov za {symbol}: {e}")
         return None
 
 
@@ -47,7 +47,6 @@ def save_to_db(data):
     if not data:
         return
 
-    conn = None
     try:
         conn = psycopg2.connect(
             dbname=os.getenv("DB_NAME"),
@@ -56,11 +55,10 @@ def save_to_db(data):
             host=os.getenv("DB_HOST"),
             port=os.getenv("DB_PORT")
         )
-        
         cur = conn.cursor()
 
         query = """
-        INSERT INTO delnice (
+        INSERT INTO delnice_temp (
             simbol, datum, trenutna_cena, odprtje, najvisja, najnizja,
             zaprtje_prejsnji, sprememba, sprememba_procent, volumen
         ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -80,17 +78,16 @@ def save_to_db(data):
         ))
 
         conn.commit()
-        print(f"✅ Uspešno shranjeno za {data['symbol']} ob {data['timestamp']}")
+        cur.close()
+        conn.close()
 
     except Exception as e:
-        print(f"❌ Napaka pri shranjevanju v bazo: {e}")
-    finally:
-        if conn:
-            conn.close()
+        print(f"❌ Napaka pri shranjevanju v delnice_temp: {e}")
+
 
 def main_loop(interval_seconds=30):
     while True:
-        print(f"Začetek osveževanja podatkov ob {datetime.now()}")
+        print(f"\n🔁 Začetek osveževanja podatkov ob {datetime.now()}")
 
         try:
             conn = psycopg2.connect(
@@ -101,36 +98,45 @@ def main_loop(interval_seconds=30):
                 port=os.getenv("DB_PORT")
             )
             cur = conn.cursor()
-
-            cur.execute("""
-                INSERT INTO arhiv (simbol, trenutna_cena)
-                SELECT simbol, trenutna_cena FROM delnice
-                ON CONFLICT (simbol) DO UPDATE
-                SET trenutna_cena = EXCLUDED.trenutna_cena
-            """)
-
-            cur.execute("DELETE FROM delnice;")
+            cur.execute("TRUNCATE delnice_temp;")
             conn.commit()
             cur.close()
             conn.close()
-
-            print("✅ Arhivirana cena in brisanje tabele delnice uspešno.")
-
+            print("🧹 delnice_temp počiščena.")
         except Exception as e:
-            print(f"❌ Napaka pri arhiviranju ali brisanju: {e}")
+            print(f"❌ Napaka pri čiščenju delnice_temp: {e}")
 
         for symbol in symbols:
             data = get_stock_data(symbol)
             if data:
                 save_to_db(data)
 
-        print(f"Konec osveževanja, čakam {interval_seconds} sekund pred naslednjo iteracijo.\n")
-        time.sleep(interval_seconds)
+        try:
+            conn = psycopg2.connect(
+                dbname=os.getenv("DB_NAME"),
+                user=os.getenv("DB_USER"),
+                password=os.getenv("DB_PASSWORD"),
+                host=os.getenv("DB_HOST"),
+                port=os.getenv("DB_PORT")
+            )
+            cur = conn.cursor()
+            cur.execute("DELETE FROM delnice WHERE simbol != 'POKER';")
+            cur.execute("INSERT INTO delnice SELECT * FROM delnice_temp;")
+            conn.commit()
+            cur.close()
+            conn.close()
 
+            print("✅ Novi podatki uspešno prestavljeni v delnice.")
+
+        except Exception as e:
+            print(f"❌ Napaka pri kopiranju v delnice: {e}")
+
+        print(f"⏳ Čakam {interval_seconds} sekund pred naslednjo iteracijo.")
+        time.sleep(interval_seconds)
 
 
 if __name__ == "__main__":
     try:
-        main_loop(interval_seconds=30) # bomo se zmenili koliko
+        main_loop(interval_seconds=30) 
     except KeyboardInterrupt:
-        print("\n🛑 Uporabnik je prekinil izvajanje. Izhod.") 
+        print("\n🛑 Uporabnik je prekinil izvajanje. Izhod.")
