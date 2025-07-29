@@ -6,26 +6,31 @@ import os
 
 load_dotenv(dotenv_path="key.env")
 
+# Uteži delnic
+utezi = {
+    'AAPL': 0.05, 'MSFT': 0.05, 'NVDA': 0.04, 'AMZN': 0.04, 'GOOGL': 0.04,
+    'META': 0.03, 'BRK.B': 0.03, 'TSLA': 0.03, 'UNH': 0.03, 'JNJ': 0.03,
+    'V': 0.03, 'XOM': 0.03, 'JPM': 0.03, 'PG': 0.02, 'MA': 0.02, 'LLY': 0.02,
+    'HD': 0.02, 'AVGO': 0.02, 'CVX': 0.02, 'KO': 0.01, 'MRK': 0.01,
+    'PEP': 0.01, 'ABBV': 0.01, 'BAC': 0.01, 'COST': 0.01, 'MCD': 0.01,
+    'ORCL': 0.01, 'EOG': 0.01, 'RTX': 0.01
+}
 
+# Uteži glede na kombinacijo
 def multiplier(hand):
-    hand = hand.lower()
-    if hand == 'royal flush':
-        return 500
-    elif hand == 'straight flush':
-        return 50
-    elif hand == 'four of a kind':
-        return 10
-    elif hand == 'full house':
-        return 3
-    elif hand == 'flush':
-        return 1.5
-    elif hand == 'straight':
-        return 1
-    else:
-        return 0
+    hand = (hand or "").lower()
+    return {
+        'royal flush': 500,
+        'straight flush': 50,
+        'four of a kind': 10,
+        'full house': 3,
+        'flush': 1.5,
+        'straight': 1
+    }.get(hand, 0)
 
-
-def update_index():
+# Indeks
+def osvezi_indeks():
+    conn = None
     try:
         conn = psycopg2.connect(
             dbname=os.getenv("DB_NAME"),
@@ -34,83 +39,87 @@ def update_index():
             host=os.getenv("DB_HOST"),
             port=os.getenv("DB_PORT")
         )
-        cur = conn.cursor()
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT simbol, trenutna_cena
+                FROM (
+                    SELECT simbol, trenutna_cena, ROW_NUMBER() OVER (PARTITION BY simbol ORDER BY datum DESC) as rn
+                    FROM delnice
+                ) sub
+                WHERE rn = 1
+            """)
+            cene = cur.fetchall()
+            cena_map = {simbol: float(cena) for simbol, cena in cene if simbol in utezi}
 
-        cur.execute("""
-            SELECT simbol, trenutna_cena, datum 
-            FROM delnice 
-            ORDER BY datum DESC
-            LIMIT 1000
-        """)
-        rows = cur.fetchall()
+            # Osnovna cena
+            cena_osnove = sum(
+                cena_map[simbol] * utezi[simbol]
+                for simbol in utezi if simbol in cena_map
+            )
+            cur.execute("SELECT market_cap FROM index_token WHERE simbol = 'POKER'")
+            result = cur.fetchone()
+            if not result:
+                market_cap = 10_000_000
+                cur.execute("""
+                    INSERT INTO index_token (simbol, market_cap, trenutna_cena)
+                    VALUES ('POKER', %s, %s)
+                """, (market_cap, cena_osnove))
+            else:
+                market_cap = float(result[0])
 
-        cena_map_nova = {}
-        cena_map_stara = {}
-        for sim, cena, _ in rows:
-            if sim not in cena_map_nova:
-                cena_map_nova[sim] = cena
-            elif sim not in cena_map_stara:
-                cena_map_stara[sim] = cena
+            # Aktivne igre
+            cur.execute("SELECT bet, player_hand, dealer_hand FROM poker")
+            igre = cur.fetchall()
+            delta = 0
+            for bet, player, dealer in igre:
+                vpliv = float(bet) * (1 + multiplier(dealer) - multiplier(player)) / 200
+                delta += vpliv
 
-        spremembe = []
-        for sim in cena_map_nova:
-            if sim in cena_map_stara and cena_map_stara[sim] > 0:
-                sprememba = (cena_map_nova[sim] - cena_map_stara[sim]) / cena_map_stara[sim]
-                spremembe.append(sprememba)
+            # Nova cena
+            nov_market_cap = market_cap + delta
+            nova_cena = cena_osnove * (nov_market_cap / 10_000_000)
 
-        povprecna_sprememba = sum(spremembe) / len(spremembe) if spremembe else 0
+            cur.execute("DELETE FROM delnice WHERE simbol = 'POKER'")
+            cur.execute("""
+                INSERT INTO delnice (
+                    simbol, datum, trenutna_cena, odprtje, najvisja, najnizja,
+                    zaprtje_prejsnji, sprememba, sprememba_procent, volumen
+                ) VALUES (%s, %s, %s, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+            """, ('POKER', datetime.now(), nova_cena))
 
+            # index_token kot osnova za vpliv poker iger
+            cur.execute("""
+                UPDATE index_token SET
+                    market_cap = %s,
+                    trenutna_cena = %s
+                WHERE simbol = 'POKER'
+            """, (nov_market_cap, nova_cena))
 
-        cur.execute("SELECT trenutna_cena, market_cap FROM index_token WHERE simbol = 'POKER'")
-        index_row = cur.fetchone()
-        trenutna_cena_indeksa, star_market_cap = index_row
+            # Arhiv
+            if igre:
+                cur.executemany("""
+                    INSERT INTO arhiv (tip, bet, player_hand, dealer_hand)
+                    VALUES ('POKER', %s, %s, %s)
+                """, igre)
+                cur.execute("DELETE FROM poker")
 
-        cur.execute("SELECT bet, player_hand, dealer_hand FROM poker")
-        igre = cur.fetchall()
-
-        # Vse igre shranimo v arhiv
-        cur.executemany("""
-            INSERT INTO arhiv (tip, bet, player_hand, dealer_hand)
-            VALUES ('POKER', %s, %s, %s)
-        """, igre)
-
-        # Formula
-        poker_prispevek = 0
-        for bet, player, dealer in igre:
-            bet_vpliv = bet / 200
-            izplacilo_dealer = multiplier(dealer)
-            izplacilo_player = multiplier(player)
-            razlika = (izplacilo_dealer - izplacilo_player) / 200
-            poker_prispevek += bet_vpliv + razlika
-
-        nov_market_cap = (star_market_cap + poker_prispevek) * (1 + povprecna_sprememba)
-        nova_cena = nov_market_cap
-
-        # Posodobimo
-        cur.execute("""
-            UPDATE index_token SET
-                trenutna_cena = %s,
-                market_cap = %s
-            WHERE simbol = 'POKER'
-        """, (nova_cena, nov_market_cap))
-
-        # Počistimo
-        cur.execute("DELETE FROM poker")
-
-        conn.commit()
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] ✅ INDEX posodobljen: {nova_cena:.2f} € (market cap: {nov_market_cap:.2f} €)")
+            conn.commit()
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] ✅ Indeks osvežen — Cena: {nova_cena:.2f} €, Market Cap: {nov_market_cap:.2f} €")
 
     except Exception as e:
-        print("❌ Napaka pri posodobitvi indeksa:", e)
-
+        print("❌ Napaka pri osveževanju indeksa:", e)
     finally:
         if conn:
             conn.close()
 
+# Zanka
 if __name__ == "__main__":
-    print("▶️ Začenjam sinhronizacijo indeksa z delnicami")
-    while True:
-        start_time = time.time()
-        update_index()
-        elapsed = time.time() - start_time
-        time.sleep(max(0, 30 - elapsed))  
+    print("▶️ Zagon indeksa POKER – osveževanje vsakih 30 sekund.")
+    try:
+        while True:
+            start = time.time()
+            osvezi_indeks()
+            time.sleep(max(0, 30 - (time.time() - start)))
+    except KeyboardInterrupt:
+        print("\n⏹️ Prekinjeno s strani uporabnika.")
+
