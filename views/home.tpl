@@ -15,6 +15,10 @@
         <tr>
             <th>Stock</th>
             <th>Price</th>
+            <th>Stock</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Price</th>
         </tr>
     </thead>
     <tbody>
@@ -22,12 +26,9 @@
     </tbody>
 </table>
 
-<div style="text-align: center;">
+<div style="display: flex; justify-content: center; gap: 20px; margin-top: 20px;">
     <button id="poker-btn" onclick="window.location='/poker'" class="btnpoker">Go to Poker Page</button>
-</div>
-
-<div style="text-align: center;">
-    <button id="portfolio-btn" onclick="window.location='/trading'" class="btntrading">Go to portfolio</button>
+    <button id="portfolio-btn" onclick="window.location='/trading'" class="btntrading">Go to Portfolio</button>
 </div>
 
 <div class="top-right">
@@ -69,18 +70,28 @@
         const tableBody = document.getElementById('stock-table').getElementsByTagName('tbody')[0];
         tableBody.innerHTML = '';
 
-        stocks.forEach(stock => {
+        for (let i = 0; i < stocks.length; i += 3) {
             const row = document.createElement('tr');
-            const cellSymbol = document.createElement('td');
-            const cellPrice = document.createElement('td');
 
-            cellSymbol.textContent = stock.symbol;
-            cellPrice.textContent = `$${stock.price.toFixed(2)}`;
+            for (let j = 0; j < 3; j++) {
+                if (i + j < stocks.length) {
+                    const cellSymbol = document.createElement('td');
+                    const cellPrice = document.createElement('td');
 
-            row.appendChild(cellSymbol);
-            row.appendChild(cellPrice);
+                    cellSymbol.textContent = stocks[i + j].symbol;
+                    cellPrice.textContent = `$${stocks[i + j].price.toFixed(2)}`;
+
+                    row.appendChild(cellSymbol);
+                    row.appendChild(cellPrice);
+                } else {
+                    // Fill empty cells if remaining stocks are less than 3
+                    row.appendChild(document.createElement('td'));
+                    row.appendChild(document.createElement('td'));
+                }
+            }
+
             tableBody.appendChild(row);
-        });
+        }
     }
 
     updateStockTable();

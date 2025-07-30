@@ -92,6 +92,8 @@ def api_check():
     session.save()
     return json.dumps(cards)
 
+# TODO: return game data after game end
+
 @route('/api/bet', method='GET')
 def api_bet():
     session = request.environ.get("beaker.session")
@@ -256,7 +258,6 @@ def api_portfolio():
     response.content_type = 'application/json'
     return json.dumps(data)
 
-# TODO: check if user can buy, update balance, update portfolio
 @route('/api/buy', method='POST')
 def api_buy():
     session = request.environ.get('beaker.session')
@@ -271,7 +272,6 @@ def api_buy():
     funkcije.update_portfolio_after_buy(session['username'], data['symbol'], data['quantity'])
     return {'status': 'ok'}
 
-# TODO: check if user can sell, update balance, update portfolio
 @route('/api/sell', method='POST')
 def api_sell():
     session = request.environ.get('beaker.session')

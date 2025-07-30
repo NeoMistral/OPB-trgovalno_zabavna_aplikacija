@@ -47,18 +47,23 @@ def get_stock_prices():
     
     try:
         select_query = sql.SQL(
-            "SELECT simbol FROM delinice"
+            "SELECT trenutna_cena FROM delnice"
         )
-        cur.execute("SELECT name FROM employees")
+        cur.execute("SELECT simbol FROM delnice")
 
 # Fetch all results
         rows = cur.fetchall()
 
 # Optional: Flatten to a list of values
         names = [row[0] for row in rows]
-        # cur.execute(select_query)
-        # prices = cur.fetchall()
-        return names
+        cur.execute(select_query)
+        prices = cur.fetchall()
+        prices = [row[0] for row in prices]
+        out = []
+        for name, price in zip(names, prices):
+            out.append({'symbol': name, 'price': float(price)})
+
+        return out[:29]
     except Exception as e:
         print(f"Error: {e}")
     finally:
