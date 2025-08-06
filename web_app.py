@@ -27,6 +27,7 @@ game_data = {
     "budget": 100,
 }
 
+TODO: selling and buying, logging in
 """
 # Configure session storage
 session_opts = {
@@ -92,33 +93,32 @@ def api_check():
     session.save()
     return json.dumps(cards)
 
-# TODO: return game data after game end
-
 @route('/api/bet', method='GET')
 def api_bet():
+    # set bet round
     session = request.environ.get("beaker.session")
     round = session["game_data"]["round"]
     session["game_data"]["round_when_bet"] = round
 
-    # set bet round
+    # get how much to bet and round to 3
     game_data = session.get("game_data", {})
     bet = poker_api.set_bet_round(game_data)
+    session["game_data"]["bet"] = bet
+    session["game_data"]["round"] = 3
     game_data["bet"] = bet
     game_data["round"] = 3
 
-    # end game and calculate winnings
+    # end game and calculate winning and winner
     winnings, winner = poker_api.end_game(game_data)
-    game_data["won"] = winnings
-    game_data["winner"] = winner
-    game_data["budget"] += winnings
+    session["game_data"]["won"] = winnings
+    session["game_data"]["winner"] = winner
+    session["game_data"]["budget"] += winnings
 
-    session["game_data"] = game_data
-    cards = poker_api.convert_cards_for_js(
-        game_data["player_cards"],
-        game_data["dealer_cards"],
-        game_data["community_cards"],
-        round
-    )
+    # get cards for display
+    player = session["game_data"]["player_cards"]
+    dealer = session["game_data"]["dealer_cards"]
+    community = session["game_data"]["community_cards"]
+    cards = poker_api.convert_cards_for_js(player, dealer, community, round)
     response.content_type = 'application/json'
     session.save()
     return json.dumps(cards)
@@ -173,14 +173,18 @@ def set_game_settings():
     session.save()
     return json.dumps({'status': 'success'})
 
-# TODO: check if user exists
+# - BAZE (false če ne obstaja)
+def get_user(username, password):
+    pass
+
 @route('/login', method='POST')
 def login():
     session = request.environ.get('beaker.session')
     username = request.forms.get('username')
     password = request.forms.get('password')
 
-    if funkcije.check_if_user_exists(username, password):
+    # Dummy auth check (replace with DB lookup)
+    if username == 'alice' and password == 'secret':
         session['user_id'] = 1
         session['username'] = username
         session.save()
@@ -190,40 +194,29 @@ def login():
         response.status = 401
         response.content_type = 'application/json'
         return json.dumps({'status': 'fail', 'error': 'Invalid credentials'})
+    
+#temporary - BAZE
+def get_stock_prices():
+    return [
+        {'symbol': 'AAPL', 'price': 192.35},
+        {'symbol': 'GOOGL', 'price': 2841.45},
+        {'symbol': 'AMZN', 'price': 3467.42}
+    ]
 
-# signing up user
-@route('/signup', method='POST')
-def signup():
-    username = request.forms.get('username')
-    password = request.forms.get('password')
-    funkcije.registracija_uporabnika(username, password)
-    response.content_type = 'application/json'
-    return json.dumps({'status': 'ok'})
-
-@route('/api/sessionLogInCheck')
-def api_session():
-    session = request.environ.get('beaker.session')
-    return {'logged_in': 'user_id' in session}
-
-# get current stock prices
-@route('/api/stocks')
-def api_stocks():
-    response.content_type = 'application/json'
-    return json.dumps(funkcije.get_stock_prices())
-
-# returns budget of user TODO: include wallet balance
+# Compute budget based on selected stock BAZE - update number of owned stocks
 @route('/api/budget', method='POST')
 def calculate_budget():
     try:
         data = request.json
-        symbol = data.get('stock') 
+        symbol = data.get('stock')  # 'B', for example
+        print(symbol)
         session = request.environ.get('beaker.session')
         if 'user_id' not in session:
             response.status = 401
             return json.dumps({'error': 'Not logged in'})
 
         user_id = session['user_id']
-        portfolio = funkcije.get_user_portfolio(user_id)  # Expecting list of {'symbol': ..., 'amount': ...}
+        portfolio = get_user_portfolio(user_id)  # Expecting list of {'symbol': ..., 'amount': ...}
         print(portfolio)
         amount = 0
         for row in portfolio:
@@ -231,7 +224,7 @@ def calculate_budget():
                 amount = row.get("amount", 0)
                 break
 
-        budget = amount  
+        budget = amount  # Replace with real logic
 
         response.content_type = 'application/json'
         return json.dumps({'budget': budget})
@@ -242,50 +235,109 @@ def calculate_budget():
         print(e)
         return json.dumps({'error': str(e)})
 
-# get user portfolio
-@route('/api/portfolio')
-def api_portfolio():
+# API route to return stock prices as JSON
+@route('/api/stocks')
+def api_stocks():
+    response.content_type = 'application/json'
+    return json.dumps(get_stock_prices())
+
+
+#get user balance - BAZE 
+def get_user_balance(user_id):
+    return 1234
+
+#get user portfolio - BAZE
+def get_user_portfolio(user_id):
+    return [{"symbol": "O", "amount": 0},
+            {"symbol": "B", "amount": 1}]
+# get user data
+def get_user_data():
     session = request.environ.get('beaker.session')
     if 'user_id' not in session:
         response.status = 401
-        return json.dumps({'error': 'Not logged in'})
+        return {'error': 'Not logged in'}
 
     user_id = session['user_id']
-    data = {
-        'username': session.get('username'),
-        'balance': funkcije.get_user_balance(user_id),
-        'portfolio': funkcije.get_user_portfolio(user_id)
-    }
+    username = session.get('username')  # assuming you saved it during login
+    balance = get_user_balance(user_id)  # your function to get balance
+    portfolio = get_user_portfolio(user_id)  # your function to get portfolio
+
     response.content_type = 'application/json'
-    return json.dumps(data)
+    return {
+        'username': username,
+        'balance': balance,
+        'portfolio': portfolio
+    }
+
+@route('/api/portfolio')
+def api_portfolio():
+    response.content_type = 'application/json'
+    return json.dumps(get_user_data())
+
+@route('/api/sessionLogInCheck')
+def api_session():
+    session = request.environ.get('beaker.session')
+    return {'logged_in': 'user_id' in session}
+
+@route('/signup', method='POST')
+def signup():
+    username = request.forms.get('username')
+    password = request.forms.get('password')
+    # Your user creation logic here
+    print(username, password)
+
+    response.content_type = 'application/json'
+    return json.dumps({'status': 'ok'})
 
 @route('/api/buy', method='POST')
 def api_buy():
     session = request.environ.get('beaker.session')
-    if 'username' not in session:
+    user = session['username']
+    
+    if not user:
         return {'status': 'error', 'error': 'Not logged in'}
 
     data = request.json
-    if not funkcije.can_buy(session['username'], data['symbol'], data['quantity'], data['price']):
+    symbol = data.get('symbol')
+    quantity = data.get('quantity')
+    price = data.get('price')
+
+    if not can_buy(user, symbol, quantity, price):
         return {'status': 'error', 'error': 'Cannot buy this stock'}
-    
-    funkcije.update_balance_after_buy(session['username'], data['price'], data['quantity'])
-    funkcije.update_portfolio_after_buy(session['username'], data['symbol'], data['quantity'])
+
+    # Update balance BAZE
+
+    # Update portfolio BAZE
     return {'status': 'ok'}
 
 @route('/api/sell', method='POST')
 def api_sell():
     session = request.environ.get('beaker.session')
-    if 'username' not in session:
-            return {'status': 'error', 'error': 'Not logged in'}
+    user = session['username']
+
+    if not user:
+        return {'status': 'error', 'error': 'Not logged in'}
 
     data = request.json
-    if not funkcije.can_sell(session['username'], data['symbol'], data['quantity']):
+    symbol = data.get('symbol')
+    quantity = data.get('quantity')
+    price = data.get('price')
+
+    if not can_sell(user, symbol, quantity):
         return {'status': 'error', 'error': 'Cannot sell this stock'}
 
-    funkcije.update_balance_after_sell(session['username'], data['price'], data['quantity'])
-    funkcije.update_portfolio_after_sell(session['username'], data['symbol'], data['quantity'])
+    # Update balance
+
+    # Update portfolio
+    
     return {'status': 'ok'}
+
+# BAZE ze narejeno
+def can_buy(user, quantity, price):
+    pass
+
+def can_sell(user, symbol, quantity):
+    pass
 
 app = SessionMiddleware(default_app(), session_opts)
 run(hots="0.0.0.0", port=8080, app=app, debug=True, reloader=True)

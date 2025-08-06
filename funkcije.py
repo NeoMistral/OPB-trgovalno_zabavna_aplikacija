@@ -23,15 +23,14 @@ def registracija_uporabnika(ime, geslo):
             cur.close()
             conn.close()
             
-def get_user(ime):
-    
+def get_user(uporabnisko_ime, geslo):
     conn, cur = ustvari_povezavo()
-    
+
     try:
         select_query = sql.SQL(
-            "SELECT * FROM uporabniki WHERE uporabnik_id = %s"
+            "SELECT * FROM uporabniki WHERE uporabnisko_ime = %s AND geslo = %s"
         )
-        cur.execute(select_query, (ime,))
+        cur.execute(select_query, (uporabnisko_ime, geslo))
         user = cur.fetchone()
         return user
     except Exception as e:
@@ -90,22 +89,28 @@ def get_user_balance(user_id):
             conn.close()
             
 def get_user_portfolio(user_id):
-    
     conn, cur = ustvari_povezavo()
-    
+
     try:
         select_query = sql.SQL(
-            "SELECT vrednostni_papir_id, kolicina FROM portfelji WHERE uporabnik_id = %s"
+            """
+            SELECT vrednostni_papir_id, kolicina FROM portfelji WHERE uporabnik_id = %s
+            """
         )
         cur.execute(select_query, (user_id,))
-        portfolio = cur.fetchall()
+        rows = cur.fetchall()
+
+        # Format the result as a list of dictionaries
+        portfolio = [{"symbol": row[0], "amount": row[1]} for row in rows]
         return portfolio
     except Exception as e:
         print(f"Error: {e}")
+        return []
     finally:
         if conn:
             cur.close()
             conn.close()
+            
             
 def get_user_balance(user_id):
     
@@ -179,3 +184,18 @@ def update_portfolio(user_id, stock_id, quantity, value):
         if conn:
             cur.close()
             conn.close()
+            
+
+def can_buy(user, quantity, price):
+    if get_user_balance(user) < quantity * price:
+        return False
+    return True
+
+def can_sell(user, symbol, quantity):
+    quant = [item for item in get_user_portfolio(user) if item[0] == symbol]
+    stock = quant[0] if quant else None
+    if not stock:
+        return False
+    if stock["amount"] < quantity:
+        return False
+    return True
