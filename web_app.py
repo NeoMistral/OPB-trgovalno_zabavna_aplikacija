@@ -135,6 +135,7 @@ def api_fold():
         game_data["community_cards"],
         game_data["round"]
     )
+    funkcije.update_stock_owned()#stock, change
     response.content_type = 'application/json'
     session.save()
     return json.dumps(cards)
@@ -145,8 +146,8 @@ def api_game_state():
     response.content_type = 'application/json'
     return json.dumps(session.get('game_data', {}))
 
-# TODO: set user balance
-@route('/api/game-state', method='GET')
+# TODO: set user balance - maybe just a function in funkcije
+@route('/api/game-state-end', method='GET')
 def api_get_and_set_balance_after_games():
     #get user
     #get balance
