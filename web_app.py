@@ -269,8 +269,9 @@ def api_buy():
     if not funkcije.can_buy(session['username'], data['symbol'], data['quantity'], data['price']):
         return {'status': 'error', 'error': 'Cannot buy this stock'}
     
-    funkcije.update_balance_after_buy(session['username'], data['price'], data['quantity'])
-    funkcije.update_portfolio_after_buy(session['username'], data['symbol'], data['quantity'])
+    value = data['price'] * data['quantity']
+    funkcije.update_user_balance(session['username'], value)
+    funkcije.update_portfolio(session['username'], data['symbol'], data['quantity'], data['price'])
     return {'status': 'ok'}
 
 @route('/api/sell', method='POST')
@@ -283,8 +284,9 @@ def api_sell():
     if not funkcije.can_sell(session['username'], data['symbol'], data['quantity']):
         return {'status': 'error', 'error': 'Cannot sell this stock'}
 
-    funkcije.update_balance_after_sell(session['username'], data['price'], data['quantity'])
-    funkcije.update_portfolio_after_sell(session['username'], data['symbol'], data['quantity'])
+    value = - data['price'] * data['quantity']
+    funkcije.update_user_balance(session['username'], value)
+    funkcije.update_portfolio(session['username'], data['symbol'], -data['quantity'], data['price'])
     return {'status': 'ok'}
 
 app = SessionMiddleware(default_app(), session_opts)
