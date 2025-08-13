@@ -9,7 +9,7 @@ def registracija_uporabnika(ime, geslo):
     
     try:
         insert_query = sql.SQL(
-            "INSERT INTO uporabniki (uporabnisko_ime, geslo) VALUES (%s, %s)"
+            "INSERT INTO uporabniki (uporabnisko_ime, geslo, stanje, vrednostni_portfeljev) VALUES (%s, %s, 10000, 0)"
         )
         cur.execute(insert_query, (ime, geslo))
         conn.commit()
@@ -76,7 +76,7 @@ def get_user_balance(user_id):
     
     try:
         select_query = sql.SQL(
-            "SELECT stanje FROM denarnica WHERE uporabnik_id = %s"
+            "SELECT stanje FROM uporabniki WHERE uporabnik_id = %s"
         )
         cur.execute(select_query, (user_id,))
         balance = cur.fetchone()
@@ -118,7 +118,7 @@ def get_user_balance(user_id):
     
     try:
         select_query = sql.SQL(
-            "SELECT stanje FROM denarnica WHERE uporabnik_id = %s"
+            "SELECT stanje FROM uporabniki WHERE uporabnik_id = %s"
         )
         cur.execute(select_query, (user_id,))
         balance = cur.fetchone()
@@ -154,7 +154,7 @@ def update_user_balance(user_id, balance_change):
     
     try:
         update_query = sql.SQL(
-            "UPDATE denarnica SET stanje = stanje + %s WHERE uporabnik_id = %s"
+            "UPDATE uporabniki SET stanje = stanje + %s WHERE uporabnik_id = %s"
         )
         cur.execute(update_query, (balance_change, user_id))
         conn.commit()
