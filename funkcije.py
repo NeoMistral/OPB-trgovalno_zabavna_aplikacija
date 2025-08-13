@@ -31,7 +31,7 @@ def get_user(uporabnisko_ime, geslo):
 
     try:
         select_query = sql.SQL(
-            "SELECT * FROM uporabniki WHERE uporabnisko_ime = %s AND geslo = %s"
+            "SELECT * FROM uporabniki WHERE uporabnik_id = %s AND geslo = %s"
         )
         cur.execute(select_query, (uporabnisko_ime, geslo))
         user = cur.fetchone()
@@ -188,6 +188,23 @@ def update_portfolio(user_id, stock_id, quantity, value):
             cur.close()
             conn.close()
             
+def update_portfolio_brez_cene(user_id, stock_id, quantity):
+    
+    conn, cur = ustvari_povezavo()
+    
+    try:
+        update_query = sql.SQL(
+            "UPDATE portfelji SET kolicina = %s WHERE uporabnik_id = %s AND vrednostni_papir_id = %s"
+        )
+        cur.execute(update_query, (quantity, user_id, stock_id))
+        conn.commit()
+        print("Portfolio updated successfully.")
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        if conn:
+            cur.close()
+            conn.close()
 
 def can_buy(user, quantity, price):
     if get_user_balance(user) < quantity * price:
@@ -202,3 +219,20 @@ def can_sell(user, symbol, quantity):
     if stock["amount"] < quantity:
         return False
     return True
+
+def check_if_user_exists(uporabnisko_ime, geslo):
+    conn, cur = ustvari_povezavo()
+
+    try:
+        select_query = sql.SQL(
+            "SELECT 1 FROM uporabniki WHERE uporabnik_id = %s AND geslo = %s LIMIT 1"
+        )
+        cur.execute(select_query, (uporabnisko_ime, geslo))
+        return cur.fetchone() is not None
+    except Exception as e:
+        print(f"Error: {e}")
+        return False
+    finally:
+        if conn:
+            cur.close()
+            conn.close()
