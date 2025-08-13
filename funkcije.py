@@ -9,7 +9,7 @@ def registracija_uporabnika(ime, geslo):
     
     try:
         insert_query = sql.SQL(
-            "INSERT INTO users (username, password) VALUES (%s, %s)"
+            "INSERT INTO uporabniki (uporabnisko_ime, geslo) VALUES (%s, %s)"
         )
         cur.execute(insert_query, (ime, geslo))
         conn.commit()
@@ -22,6 +22,9 @@ def registracija_uporabnika(ime, geslo):
         if conn:
             cur.close()
             conn.close()
+
+def check_if_user_exists(uporabnisko_ime, geslo):
+    return True
             
 def get_user(uporabnisko_ime, geslo):
     conn, cur = ustvari_povezavo()
