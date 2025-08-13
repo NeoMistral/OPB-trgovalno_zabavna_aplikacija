@@ -167,15 +167,15 @@ def update_user_balance(user_id, balance_change):
             conn.close()
             
             
-def update_portfolio(user_id, stock_id, quantity, value):
+def update_portfolio(user_id, symbol, quantity, value):
     
     conn, cur = ustvari_povezavo()
     
     try:
         update_query = sql.SQL(
-            "UPDATE portfelji SET kolicina = %s, vrednost = %s WHERE uporabnik_id = %s AND vrednostni_papir_id = %s"
+            "UPDATE portfelji SET kolicina = %s, vrednost = %s WHERE uporabnik_id = %s AND simbol = %s"
         )
-        cur.execute(update_query, (quantity, value, user_id, stock_id))
+        cur.execute(update_query, (quantity, value, user_id, symbol))
         conn.commit()
         print("Portfolio updated successfully.")
     except Exception as e:
@@ -191,7 +191,7 @@ def update_portfolio_brez_cene(user_id, stock_id, quantity):
     
     try:
         update_query = sql.SQL(
-            "UPDATE portfelji SET kolicina = %s WHERE uporabnik_id = %s AND vrednostni_papir_id = %s"
+            "UPDATE portfelji SET kolicina = %s WHERE uporabnik_id = %s AND simbol = %s"
         )
         cur.execute(update_query, (quantity, user_id, stock_id))
         conn.commit()

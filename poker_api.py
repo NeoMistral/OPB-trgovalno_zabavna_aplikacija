@@ -23,15 +23,16 @@ def set_bet_round(game_data):
 def end_game(game_data):
 
     # calculate game result
-    winner, winnings = Pl.calculate_game(game_data)
-    return winnings, winner
+    winner, winnings, player_combo, dealer_combo = Pl.calculate_game(game_data)
+    return winnings, winner, player_combo, dealer_combo
 
 def end_game_by_fold(game_data):
     game_data["round"] = 3
     game_data["won"] = - (game_data["ante"] + game_data["blind"])
     game_data["budget"] += game_data["won"]
     game_data["winner"] = "dealer"
-    return game_data
+    winner, winnings, player_combo, dealer_combo = Pl.calculate_game(game_data)
+    return game_data, player_combo, dealer_combo
 
 def set_game_data(game_data, blind, ante):
     print(blind, ante)

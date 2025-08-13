@@ -83,6 +83,11 @@
         }
     }
 
+    function formatMoney(value, fallback = '0.00') {
+        const num = typeof value === 'number' ? value : Number(value);
+        return Number.isFinite(num) ? num.toFixed(2) : fallback;
+    }
+
     async function updateUserPortfolioTable() {
         const response = await fetch('/api/portfolio');
         const data = await response.json();
@@ -91,11 +96,11 @@
             console.error("Invalid portfolio format:", data);
             return;
         }
-
+        console.log("API data:", data);
         // Update user info
         const userInfo = document.getElementById('user-info');
         userInfo.innerHTML = `<strong>Logged in as:</strong> ${data.username} <br>
-                            <strong>Balance:</strong> $${data.balance.toFixed(2)}`;
+                            <strong>Balance:</strong> $${formatMoney(data.balance)}`;
 
         // Update portfolio table
         const tableBody = document.getElementById('portfolio-table').getElementsByTagName('tbody')[0];

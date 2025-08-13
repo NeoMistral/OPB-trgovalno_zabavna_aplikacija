@@ -20,13 +20,16 @@ utezi = {
 def multiplier(hand):
     hand = (hand or "").lower()
     return {
-        'royal flush': 500,
-        'straight flush': 50,
-        'four of a kind': 10,
-        'full house': 3,
-        'flush': 1.5,
-        'straight': 1
+        'Royal Flush': 500,
+        'Straight Flush': 50,
+        'Four of a Kind': 10,
+        'Full House': 3,
+        'Flush': 1.5,
+        'Straight': 1
     }.get(hand, 0)
+
+def get_data(bet, player_combo, dealer_combo):
+    return
 
 # Indeks
 def osvezi_indeks():
