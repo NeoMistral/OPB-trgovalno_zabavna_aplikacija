@@ -233,3 +233,20 @@ def check_if_user_exists(uporabnisko_ime, geslo):
         if conn:
             cur.close()
             conn.close()
+            
+def get_user_id(uporabnisko_ime):
+    conn, cur = ustvari_povezavo()
+    
+    try:
+        select_query = sql.SQL(
+            "SELECT uporabnik_id FROM uporabniki WHERE uporabnisko_ime = %s"
+        )
+        cur.execute(select_query, (uporabnisko_ime,))
+        result = cur.fetchone()
+        return result[0] if result else None
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        if conn:
+            cur.close()
+            conn.close()
