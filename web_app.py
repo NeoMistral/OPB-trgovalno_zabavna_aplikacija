@@ -135,6 +135,7 @@ def api_fold():
         game_data["community_cards"],
         game_data["round"]
     )
+    
     funkcije.update_stock_owned()#stock, change
     response.content_type = 'application/json'
     session.save()
@@ -181,7 +182,8 @@ def login():
     password = request.forms.get('password')
 
     if funkcije.check_if_user_exists(username, password):
-        session['user_id'] = 1
+        user_id = funkcije.get_user_id(username)
+        session['user_id'] = user_id
         session['username'] = username
         session.save()
         response.content_type = 'application/json'
@@ -231,10 +233,10 @@ def calculate_budget():
                 amount = row.get("amount", 0)
                 break
 
-        budget = amount  
+        amount  
 
         response.content_type = 'application/json'
-        return json.dumps({'budget': budget})
+        return json.dumps({'budget': amount})
 
     except Exception as e:
         response.status = 500
@@ -249,10 +251,10 @@ def api_portfolio():
     if 'user_id' not in session:
         response.status = 401
         return json.dumps({'error': 'Not logged in'})
-
+    print(session['username'])
     user_id = session['user_id']
     data = {
-        'username': session.get('username'),
+        'username': session['username'],
         'balance': funkcije.get_user_balance(user_id),
         'portfolio': funkcije.get_user_portfolio(user_id)
     }
@@ -266,12 +268,12 @@ def api_buy():
         return {'status': 'error', 'error': 'Not logged in'}
 
     data = request.json
-    if not funkcije.can_buy(session['username'], data['symbol'], data['quantity'], data['price']):
+    if not funkcije.can_buy(session['user_id'], data['quantity'], data['price']):
         return {'status': 'error', 'error': 'Cannot buy this stock'}
     
     value = data['price'] * data['quantity']
-    funkcije.update_user_balance(session['username'], value)
-    funkcije.update_portfolio(session['username'], data['symbol'], data['quantity'], data['price'])
+    funkcije.update_user_balance(session['user_id'], value)
+    funkcije.update_portfolio(session['user_id'], data['symbol'], data['quantity'], data['price'])
     return {'status': 'ok'}
 
 @route('/api/sell', method='POST')
@@ -281,12 +283,12 @@ def api_sell():
             return {'status': 'error', 'error': 'Not logged in'}
 
     data = request.json
-    if not funkcije.can_sell(session['username'], data['symbol'], data['quantity']):
+    if not funkcije.can_sell(session['user_id'], data['symbol'], data['quantity']):
         return {'status': 'error', 'error': 'Cannot sell this stock'}
 
     value = - data['price'] * data['quantity']
-    funkcije.update_user_balance(session['username'], value)
-    funkcije.update_portfolio(session['username'], data['symbol'], -data['quantity'], data['price'])
+    funkcije.update_user_balance(session['user_id'], value)
+    funkcije.update_portfolio(session['user_id'], data['symbol'], -data['quantity'], data['price'])
     return {'status': 'ok'}
 
 app = SessionMiddleware(default_app(), session_opts)

@@ -22,16 +22,13 @@ def registracija_uporabnika(ime, geslo):
         if conn:
             cur.close()
             conn.close()
-
-def check_if_user_exists(uporabnisko_ime, geslo):
-    return True
             
 def get_user(uporabnisko_ime, geslo):
     conn, cur = ustvari_povezavo()
 
     try:
         select_query = sql.SQL(
-            "SELECT * FROM uporabniki WHERE uporabnik_id = %s AND geslo = %s"
+            "SELECT * FROM uporabniki WHERE uporabnisko_ime = %s AND geslo = %s"
         )
         cur.execute(select_query, (uporabnisko_ime, geslo))
         user = cur.fetchone()
@@ -206,8 +203,8 @@ def update_portfolio_brez_cene(user_id, stock_id, quantity):
             cur.close()
             conn.close()
 
-def can_buy(user, quantity, price):
-    if get_user_balance(user) < quantity * price:
+def can_buy(user_id, quantity, price):
+    if get_user_balance(user_id) < quantity * price:
         return False
     return True
 
@@ -225,7 +222,7 @@ def check_if_user_exists(uporabnisko_ime, geslo):
 
     try:
         select_query = sql.SQL(
-            "SELECT 1 FROM uporabniki WHERE uporabnik_id = %s AND geslo = %s LIMIT 1"
+            "SELECT 1 FROM uporabniki WHERE uporabnisko_ime = %s AND geslo = %s LIMIT 1"
         )
         cur.execute(select_query, (uporabnisko_ime, geslo))
         return cur.fetchone() is not None
