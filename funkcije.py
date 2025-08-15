@@ -192,6 +192,7 @@ def update_portfolio_brez_cene(user_id, stock_id, quantity):
     try:
         update_query = sql.SQL(
             "UPDATE portfelji SET kolicina = %s WHERE uporabnik_id = %s AND simbol = %s"
+            "UPDATE portfelji SET kolicina = %s WHERE uporabnik_id = %s AND simbol = %s"
         )
         cur.execute(update_query, (quantity, user_id, stock_id))
         conn.commit()
