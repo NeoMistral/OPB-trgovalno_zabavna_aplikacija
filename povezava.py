@@ -4,6 +4,14 @@ port = 5432
 user = 'javnost'
 password = 'javnogeslo'
 
+import config
+database = config.database
+host = config.host
+port = config.port
+user = config.user
+password = config.password
+
+
 
 #povezava do baze
 def ustvari_povezavo():

@@ -94,7 +94,7 @@ def get_user_portfolio(user_id):
     try:
         select_query = sql.SQL(
             """
-            SELECT vrednostni_papir_id, kolicina FROM portfelji WHERE uporabnik_id = %s
+            SELECT simbol, kolicina FROM portfelji WHERE uporabnik_id = %s
             """
         )
         cur.execute(select_query, (user_id,))
@@ -136,7 +136,7 @@ def add_transaction(user_id, stock_id, quantity, value):
     
     try:
         insert_query = sql.SQL(
-            "INSERT INTO transakcije (uporabnik_id, vrednostni_papir_id, kolicina, vrednost) VALUES (%s, %s, %s, %s)"
+            "INSERT INTO transakcije (uporabnik_id, simbol, kolicina, vrednost) VALUES (%s, %s, %s, %s)"
         )
         cur.execute(insert_query, (user_id, stock_id, quantity, value))
         conn.commit()
