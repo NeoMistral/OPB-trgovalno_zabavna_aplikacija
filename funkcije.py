@@ -94,7 +94,7 @@ def get_user_portfolio(user_id):
     try:
         select_query = sql.SQL(
             """
-            SELECT vrednostni_papir_id, kolicina FROM portfelji WHERE uporabnik_id = %s
+            SELECT simbol, kolicina FROM portfelji WHERE uporabnik_id = %s
             """
         )
         cur.execute(select_query, (user_id,))
@@ -167,23 +167,23 @@ def update_user_balance(user_id, balance_change):
             conn.close()
             
             
-# def update_portfolio(user_id, stock_id, quantity, value):
+def update_portfolio(user_id, stock_id, quantity, value):
     
-#     conn, cur = ustvari_povezavo()
+    conn, cur = ustvari_povezavo()
     
-#     try:
-#         update_query = sql.SQL(
-#             "UPDATE portfelji SET kolicina = %s, vrednost = %s WHERE uporabnik_id = %s AND vrednostni_papir_id = %s"
-#         )
-#         cur.execute(update_query, (quantity, value, user_id, stock_id))
-#         conn.commit()
-#         print("Portfolio updated successfully.")
-#     except Exception as e:
-#         print(f"Error: {e}")
-#     finally:
-#         if conn:
-#             cur.close()
-#             conn.close()
+    try:
+        update_query = sql.SQL(
+            "UPDATE portfelji SET kolicina = kolicina + %s, vrednost = %s WHERE uporabnik_id = %s AND simbol = %s"
+        )
+        cur.execute(update_query, (quantity, value, user_id, stock_id))
+        conn.commit()
+        print("Portfolio updated successfully.")
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        if conn:
+            cur.close()
+            conn.close()
             
 def update_portfolio_brez_cene(user_id, stock_id, quantity):
     
@@ -191,7 +191,6 @@ def update_portfolio_brez_cene(user_id, stock_id, quantity):
     
     try:
         update_query = sql.SQL(
-            "UPDATE portfelji SET kolicina = %s WHERE uporabnik_id = %s AND simbol = %s"
             "UPDATE portfelji SET kolicina = %s WHERE uporabnik_id = %s AND simbol = %s"
         )
         cur.execute(update_query, (quantity, user_id, stock_id))
@@ -210,7 +209,7 @@ def can_buy(user_id, quantity, price):
     return True
 
 def can_sell(user, symbol, quantity):
-    quant = [item for item in get_user_portfolio(user) if item[0] == symbol]
+    quant = [item for item in get_user_portfolio(user) if item["symbol"] == symbol]
     stock = quant[0] if quant else None
     if not stock:
         return False
@@ -252,7 +251,7 @@ def get_user_id(uporabnisko_ime):
             cur.close()
             conn.close()
             
-def insert_user_stocks(uporabnisko_ime):
+def insert_user_stocks(user_id):
     conn, cur = ustvari_povezavo()
     
     simboli = [
@@ -263,10 +262,10 @@ def insert_user_stocks(uporabnisko_ime):
     
     try:
         insert_query = sql.SQL("""
-            INSERT INTO portfelji (uporabnisko_ime, simbol, kolicina, vrednost)
+            INSERT INTO portfelji (uporabnik_id, simbol, kolicina, vrednost)
             VALUES (%s, %s, 0, 0)
         """)
-        rows = [(uporabnisko_ime, simbol) for simbol in simboli]
+        rows = [(user_id, simbol) for simbol in simboli]
         cur.executemany(insert_query, rows)
         
         conn.commit()

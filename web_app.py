@@ -154,14 +154,6 @@ def api_game_state():
     response.content_type = 'application/json'
     return json.dumps(session.get('game_data', {}))
 
-# TODO: set user balance - maybe just a function in funkcije
-@route('/api/game-state-end', method='GET')
-def api_get_and_set_balance_after_games():
-    #get user
-    #get balance
-    #set user balance
-    return
-
 # Route to serve static files (like CSS)
 @route('/static/<filepath:path>')
 def serve_static(filepath):
@@ -205,6 +197,7 @@ def signup():
     username = request.forms.get('username')
     password = request.forms.get('password')
     funkcije.registracija_uporabnika(username, password)
+    funkcije.insert_user_stocks(funkcije.get_user_id(username))
     response.content_type = 'application/json'
     return json.dumps({'status': 'ok'})
 
@@ -280,7 +273,7 @@ def api_buy():
     
     value = -data['price'] * data['quantity']
     funkcije.update_user_balance(session['user_id'], value)
-    funkcije.update_portfolio(session['user_id'], data['symbol'], -data['quantity'], data['price'])
+    funkcije.update_portfolio(session['user_id'], data['symbol'], data['quantity'], data['price'])
     return {'status': 'ok'}
 
 @route('/api/sell', method='POST')
@@ -295,7 +288,7 @@ def api_sell():
 
     value = data['price'] * data['quantity']
     funkcije.update_user_balance(session['user_id'], value)
-    funkcije.update_portfolio(session['user_id'], data['symbol'], data['quantity'], data['price'])
+    funkcije.update_portfolio(session['user_id'], data['symbol'], -data['quantity'], data['price'])
     return {'status': 'ok'}
 
 app = SessionMiddleware(default_app(), session_opts)
