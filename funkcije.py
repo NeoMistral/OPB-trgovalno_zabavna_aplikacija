@@ -94,7 +94,7 @@ def get_user_portfolio(user_id):
     try:
         select_query = sql.SQL(
             """
-            SELECT simbol, kolicina FROM portfelji WHERE uporabnik_id = %s
+            SELECT simbol, kolicina FROM portfelji WHERE uporabnik_id = %s ORDER BY portfelj_id
             """
         )
         cur.execute(select_query, (user_id,))
