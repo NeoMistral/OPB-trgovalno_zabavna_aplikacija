@@ -5,6 +5,7 @@ import poker_logic as Pl
 import poker_index as Pi
 import json
 import funkcije
+from poker_index import get_data
 """
 In views there are templates,
 in static we have css files and images
@@ -122,7 +123,9 @@ def api_bet():
         game_data["community_cards"],
         round
     )
-    Pi.get_data(bet + game_data["ante"] + game_data["blind"], player_combo, dealer_combo)
+    total_bet = bet + game_data.get("ante", 0) + game_data.get("blind", 0)
+    get_data(total_bet, player_combo, dealer_combo)
+
     response.content_type = 'application/json'
     session.save()
     return json.dumps(cards)

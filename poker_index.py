@@ -29,7 +29,31 @@ def multiplier(hand):
     }.get(hand, 0)
 
 def get_data(bet, player_combo, dealer_combo):
-    return
+    conn = None
+    try:
+        conn = psycopg2.connect(
+            dbname=os.getenv("DB_NAME"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            host=os.getenv("DB_HOST"),
+            port=os.getenv("DB_PORT")
+        )
+
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO poker (bet, player_combo, dealer_combo)
+                VALUES (%s, %s, %s)
+            """, (bet, str(player_combo), str(dealer_combo)))
+
+            conn.commit()
+
+    except Exception as e:
+        print("Napaka pri zapisu v bazo:", e)
+        if conn:
+            conn.rollback()
+    finally:
+        if conn:
+            conn.close()
 
 # Indeks
 def osvezi_indeks():
