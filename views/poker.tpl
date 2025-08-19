@@ -55,7 +55,7 @@
                 Stock:
                 <select id="stock-input"></select>
             </label><br>
-            <p id="game-budget">Num of stocks: 0</p>
+            <p id="game-budget">Budget: 0</p>
             <!-- Input fields for blind and ante -->
             <label>
                 Blind:
@@ -138,7 +138,7 @@ function updateGameInfo() {
         .then(res => res.json())
         .then(data => {
             document.getElementById('game-bet').textContent = `Bet: ${data.bet}`;
-            document.getElementById('game-budget').textContent = `Num of stocks: ${data.budget}`;
+            document.getElementById('game-budget').textContent = `Budget: ${data.budget}`;
             document.getElementById('game-ante').textContent = `Blind: ${data.blind}`;
             document.getElementById('game-blind').textContent = `Ante: ${data.ante}`;
             document.getElementById('game-winner').textContent = `Winner: ${data.winner || 'TBD'}`;
@@ -209,7 +209,7 @@ async function updateBudget(stock) {
     });
 
     const data = await res.json();
-    document.getElementById('game-budget').textContent = `Num od stocks: ${data.budget}`;
+    document.getElementById('game-budget').textContent = `Budget: ${data.budget}`;
 }
 
 async function populateStockOptions() {

@@ -558,7 +558,7 @@ def calculate_game(game_data):
     else:
         winnings = 0
 
-    return winner, winnings, player_combination, dealer_combination
+    return winner, winnings
 
 def trips_payout(iter=1000):
     global budget

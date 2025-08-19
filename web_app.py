@@ -1,8 +1,6 @@
 from bottle import run, route, template, static_file, response, request, default_app
 from beaker.middleware import SessionMiddleware
 import poker_api
-import poker_logic as Pl
-import poker_index as Pi
 import json
 import funkcije
 """
@@ -67,7 +65,6 @@ def api_deal():
         "bet": 0,
         "won": 0,
         "winner": "TBD",
-        "stock": None,
         "budget": balance,
         "blind": 1, # default blind
         "ante": 1, # default ante
@@ -110,7 +107,7 @@ def api_bet():
     game_data["round"] = 3
 
     # end game and calculate winnings
-    winnings, winner, player_combo, dealer_combo = poker_api.end_game(game_data)
+    winnings, winner = poker_api.end_game(game_data)
     game_data["won"] = winnings
     game_data["winner"] = winner
     game_data["budget"] += winnings
@@ -122,7 +119,6 @@ def api_bet():
         game_data["community_cards"],
         round
     )
-    Pi.get_data(bet + game_data["ante"] + game_data["blind"], player_combo, dealer_combo)
     response.content_type = 'application/json'
     session.save()
     return json.dumps(cards)
@@ -130,7 +126,7 @@ def api_bet():
 @route('/api/fold', method="GET")
 def api_fold():
     session = request.environ.get("beaker.session")
-    game_data, player_combo, dealer_combo = poker_api.end_game_by_fold(game_data=session["game_data"])
+    game_data = poker_api.end_game_by_fold(game_data=session["game_data"])
     session["game_data"] = game_data
 
     cards = poker_api.convert_cards_for_js(
@@ -140,10 +136,7 @@ def api_fold():
         game_data["round"]
     )
     
-    funkcije.update_portfolio_brez_cene(session["user_id"], game_data["stock"], game_data["budget"])#stock, change
-
-    Pi.get_data(game_data["ante"] + game_data["blind"], player_combo, dealer_combo)
-    
+    funkcije.update_stock_owned()#stock, change
     response.content_type = 'application/json'
     session.save()
     return json.dumps(cards)
@@ -181,6 +174,7 @@ def set_game_settings():
     session.save()
     return json.dumps({'status': 'success'})
 
+# TODO: check if user exists
 @route('/login', method='POST')
 def login():
     session = request.environ.get('beaker.session')
@@ -219,7 +213,7 @@ def api_stocks():
     response.content_type = 'application/json'
     return json.dumps(funkcije.get_stock_prices())
 
-# returns budget of user
+# returns budget of user TODO: include wallet balance
 @route('/api/budget', method='POST')
 def calculate_budget():
     try:
@@ -261,11 +255,10 @@ def api_portfolio():
     user_id = session['user_id']
     data = {
         'username': session['username'],
-        'balance': float(funkcije.get_user_balance(user_id)),
+        'balance': funkcije.get_user_balance(user_id),
         'portfolio': funkcije.get_user_portfolio(user_id)
     }
     response.content_type = 'application/json'
-    print(data)
     return json.dumps(data)
 
 @route('/api/buy', method='POST')
@@ -278,9 +271,9 @@ def api_buy():
     if not funkcije.can_buy(session['user_id'], data['quantity'], data['price']):
         return {'status': 'error', 'error': 'Cannot buy this stock'}
     
-    value = -data['price'] * data['quantity']
+    value = data['price'] * data['quantity']
     funkcije.update_user_balance(session['user_id'], value)
-    funkcije.update_portfolio(session['user_id'], data['symbol'], -data['quantity'], data['price'])
+    funkcije.update_portfolio(session['user_id'], data['symbol'], data['quantity'], data['price'])
     return {'status': 'ok'}
 
 @route('/api/sell', method='POST')
@@ -293,9 +286,9 @@ def api_sell():
     if not funkcije.can_sell(session['user_id'], data['symbol'], data['quantity']):
         return {'status': 'error', 'error': 'Cannot sell this stock'}
 
-    value = data['price'] * data['quantity']
+    value = - data['price'] * data['quantity']
     funkcije.update_user_balance(session['user_id'], value)
-    funkcije.update_portfolio(session['user_id'], data['symbol'], data['quantity'], data['price'])
+    funkcije.update_portfolio(session['user_id'], data['symbol'], -data['quantity'], data['price'])
     return {'status': 'ok'}
 
 app = SessionMiddleware(default_app(), session_opts)
