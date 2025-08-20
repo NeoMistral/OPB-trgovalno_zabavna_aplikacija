@@ -1,5 +1,5 @@
 from psycopg2 import sql
-from povezava import ustvari_povezavo  # replace with your actual connection module
+from povezava import ustvari_povezavo  
 
 conn, cur = ustvari_povezavo()
 
@@ -7,16 +7,16 @@ try:
     # Drop triggers if they already exist
     cur.execute("DROP TRIGGER IF EXISTS trg_update_portfelji_price_insert ON delnice;")
     cur.execute("DROP TRIGGER IF EXISTS trg_update_vrednost_on_kolicina ON portfelji;")
-    cur.execute("DROP TRIGGER IF EXISTS trg_update_vrednost ON portfelj;")
+    cur.execute("DROP TRIGGER IF EXISTS trg_update_vrednost ON portfelji;")
 
     create_function_uporabniki = sql.SQL("""
         CREATE OR REPLACE FUNCTION update_vrednostni_portfelji()
         RETURNS TRIGGER AS $$
         BEGIN
           UPDATE uporabniki u
-          SET vrednostni_portfelji = (
+          SET vrednostni_portfeljev = (
               SELECT COALESCE(SUM(vrednost), 0)
-              FROM portfelj
+              FROM portfelji
               WHERE uporabnik_id = COALESCE(NEW.uporabnik_id, OLD.uporabnik_id)
           )
           WHERE u.uporabnik_id = COALESCE(NEW.uporabnik_id, OLD.uporabnik_id);
@@ -28,7 +28,7 @@ try:
 
     create_trigger_uporabniki = sql.SQL("""
         CREATE TRIGGER trg_update_vrednost
-        AFTER INSERT OR UPDATE OR DELETE ON portfelj
+        AFTER INSERT OR UPDATE OR DELETE ON portfelji
         FOR EACH ROW
         EXECUTE FUNCTION update_vrednostni_portfelji();
     """)
@@ -52,17 +52,37 @@ try:
         FOR EACH ROW
         EXECUTE FUNCTION update_portfelji_on_price_insert();
     """)
+    
+    create_function_portfelji = sql.SQL("""
+CREATE OR REPLACE FUNCTION update_vrednost_on_kolicina_change()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_trenutna_cena numeric;
+BEGIN
+    -- fetch the current price from another table
+    SELECT c.trenutna_cena
+    INTO v_trenutna_cena
+    FROM delnice c
+    WHERE c.simbol = NEW.simbol;  -- adjust column to match your relation key
+
+    -- calculate new value
+    NEW.vrednost := NEW.kolicina * v_trenutna_cena;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+""")
 
     # --- Trigger function + trigger for portfelji.kolicina update ---
-    create_function_portfelji = sql.SQL("""
-        CREATE OR REPLACE FUNCTION update_vrednost_on_kolicina_change()
-        RETURNS TRIGGER AS $$
-        BEGIN
-            NEW.vrednost := NEW.kolicina * NEW.trenutna_cena;
-            RETURN NEW;
-        END;
-        $$ LANGUAGE plpgsql;
-    """)
+    # create_function_portfelji = sql.SQL("""
+    #     CREATE OR REPLACE FUNCTION update_vrednost_on_kolicina_change()
+    #     RETURNS TRIGGER AS $$
+    #     BEGIN
+    #         NEW.vrednost := NEW.kolicina * trenutna_cena;
+    #         RETURN NEW;
+    #     END;
+    #     $$ LANGUAGE plpgsql;
+    # """)
 
     create_trigger_portfelji = sql.SQL("""
         CREATE TRIGGER trg_update_vrednost_on_kolicina
