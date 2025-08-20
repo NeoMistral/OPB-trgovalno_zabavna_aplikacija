@@ -111,6 +111,29 @@ def get_user_portfolio(user_id):
             cur.close()
             conn.close()
             
+def get_user_portfolio_all(user_id):
+    conn, cur = ustvari_povezavo()
+
+    try:
+        select_query = sql.SQL(
+            """
+            SELECT simbol, kolicina, vrednost FROM portfelji WHERE uporabnik_id = %s ORDER BY portfelj_id
+            """
+        )
+        cur.execute(select_query, (user_id,))
+        rows = cur.fetchall()
+
+        # Format the result as a list of dictionaries
+        portfolio = [{"symbol": row[0], "amount": row[1], "value": row[2]} for row in rows]
+        return portfolio
+    except Exception as e:
+        print(f"Error: {e}")
+        return []
+    finally:
+        if conn:
+            cur.close()
+            conn.close()
+            
             
 def get_user_balance(user_id):
     
