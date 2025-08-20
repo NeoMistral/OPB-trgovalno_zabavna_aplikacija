@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 import time
 import os
+import povezava
 
 load_dotenv(dotenv_path="key.env")
 
@@ -29,15 +30,9 @@ def multiplier(hand):
     }.get(hand, 0)
 
 def get_data(bet, player_combo, dealer_combo):
-    conn = None
+    conn, curr = povezava.ustvari_povezavo()
     try:
-        conn = psycopg2.connect(
-            dbname=os.getenv("DB_NAME"),
-            user=os.getenv("DB_USER"),
-            password=os.getenv("DB_PASSWORD"),
-            host=os.getenv("DB_HOST"),
-            port=os.getenv("DB_PORT")
-        )
+        
 
         with conn.cursor() as cur:
             cur.execute("""

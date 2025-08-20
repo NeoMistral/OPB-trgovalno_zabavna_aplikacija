@@ -124,7 +124,7 @@ def get_user_portfolio_all(user_id):
         rows = cur.fetchall()
 
         # Format the result as a list of dictionaries
-        portfolio = [{"symbol": row[0], "amount": row[1], "value": row[2]} for row in rows]
+        portfolio = [{"symbol": row[0], "amount": row[1], "value": float(row[2])} for row in rows]
         return portfolio
     except Exception as e:
         print(f"Error: {e}")
@@ -211,7 +211,7 @@ def update_portfolio(user_id, stock_id, quantity, value):
 def update_portfolio_brez_cene(user_id, stock_id, quantity):
     
     conn, cur = ustvari_povezavo()
-    
+    print(quantity)
     try:
         update_query = sql.SQL(
             "UPDATE portfelji SET kolicina = %s WHERE uporabnik_id = %s AND simbol = %s"
