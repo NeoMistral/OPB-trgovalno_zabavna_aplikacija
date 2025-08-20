@@ -1,11 +1,40 @@
 from psycopg2 import sql
-from povezava import ustvari_povezavo  # replace with actual module
+from povezava import ustvari_povezavo  # replace with your actual connection module
 
 conn, cur = ustvari_povezavo()
 
 try:
-    # Create the trigger function
-    create_function = sql.SQL("""
+    # Drop triggers if they already exist
+    cur.execute("DROP TRIGGER IF EXISTS trg_update_portfelji_price_insert ON delnice;")
+    cur.execute("DROP TRIGGER IF EXISTS trg_update_vrednost_on_kolicina ON portfelji;")
+    cur.execute("DROP TRIGGER IF EXISTS trg_update_vrednost ON portfelj;")
+
+    create_function_uporabniki = sql.SQL("""
+        CREATE OR REPLACE FUNCTION update_vrednostni_portfelji()
+        RETURNS TRIGGER AS $$
+        BEGIN
+          UPDATE uporabniki u
+          SET vrednostni_portfelji = (
+              SELECT COALESCE(SUM(vrednost), 0)
+              FROM portfelj
+              WHERE uporabnik_id = COALESCE(NEW.uporabnik_id, OLD.uporabnik_id)
+          )
+          WHERE u.uporabnik_id = COALESCE(NEW.uporabnik_id, OLD.uporabnik_id);
+
+          RETURN NEW;
+        END;
+        $$ LANGUAGE plpgsql;
+    """)
+
+    create_trigger_uporabniki = sql.SQL("""
+        CREATE TRIGGER trg_update_vrednost
+        AFTER INSERT OR UPDATE OR DELETE ON portfelj
+        FOR EACH ROW
+        EXECUTE FUNCTION update_vrednostni_portfelji();
+    """)
+
+    # --- Trigger function + trigger for delnice insert ---
+    create_function_delnice = sql.SQL("""
         CREATE OR REPLACE FUNCTION update_portfelji_on_price_insert()
         RETURNS TRIGGER AS $$
         BEGIN
@@ -17,20 +46,43 @@ try:
         $$ LANGUAGE plpgsql;
     """)
 
-    # Create the trigger
-    create_trigger = sql.SQL("""
+    create_trigger_delnice = sql.SQL("""
         CREATE TRIGGER trg_update_portfelji_price_insert
         AFTER INSERT ON delnice
         FOR EACH ROW
         EXECUTE FUNCTION update_portfelji_on_price_insert();
     """)
 
-    # Execute both
-    cur.execute(create_function)
-    cur.execute(create_trigger)
+    # --- Trigger function + trigger for portfelji.kolicina update ---
+    create_function_portfelji = sql.SQL("""
+        CREATE OR REPLACE FUNCTION update_vrednost_on_kolicina_change()
+        RETURNS TRIGGER AS $$
+        BEGIN
+            NEW.vrednost := NEW.kolicina * NEW.trenutna_cena;
+            RETURN NEW;
+        END;
+        $$ LANGUAGE plpgsql;
+    """)
+
+    create_trigger_portfelji = sql.SQL("""
+        CREATE TRIGGER trg_update_vrednost_on_kolicina
+        BEFORE UPDATE OF kolicina ON portfelji
+        FOR EACH ROW
+        EXECUTE FUNCTION update_vrednost_on_kolicina_change();
+    """)
+
+    # Execute all statements
+    cur.execute(create_function_uporabniki)
+    cur.execute(create_trigger_uporabniki)
+
+    cur.execute(create_function_delnice)
+    cur.execute(create_trigger_delnice)
+
+    cur.execute(create_function_portfelji)
+    cur.execute(create_trigger_portfelji)
 
     conn.commit()
-    print("Trigger and function created successfully.")
+    print("All triggers and functions created successfully.")
 
 except Exception as e:
     print(f"Error: {e}")
