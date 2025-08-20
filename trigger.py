@@ -59,14 +59,17 @@ RETURNS TRIGGER AS $$
 DECLARE
     v_trenutna_cena numeric;
 BEGIN
-    -- fetch the current price from another table
-    SELECT c.trenutna_cena
-    INTO v_trenutna_cena
-    FROM delnice c
-    WHERE c.simbol = NEW.simbol;  -- adjust column to match your relation key
 
-    -- calculate new value
-    NEW.vrednost := NEW.kolicina * v_trenutna_cena;
+SELECT c.trenutna_cena
+INTO v_trenutna_cena
+FROM delnice c
+WHERE c.simbol = NEW.simbol;
+
+IF v_trenutna_cena IS NULL THEN
+    RAISE EXCEPTION 'No trenutna_cena found for simbol = %', NEW.simbol;
+END IF;
+
+NEW.vrednost := COALESCE(NEW.kolicina, 0) * v_trenutna_cena;
 
     RETURN NEW;
 END;
