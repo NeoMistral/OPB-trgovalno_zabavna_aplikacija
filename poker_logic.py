@@ -557,8 +557,9 @@ def calculate_game(game_data):
         winnings = -(ante + blind + game_data["bet"])
     else:
         winnings = 0
-
-    return winner, winnings
+    print( winner, winnings, player_combination, dealer_combination)
+    print("test")
+    return winner, winnings, player_combination, dealer_combination
 
 def trips_payout(iter=1000):
     global budget

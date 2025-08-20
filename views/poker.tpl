@@ -120,11 +120,13 @@ function dealCards() {
 function setGameSettings() {
     const blind = parseInt(document.getElementById('blind-input').value);
     const ante = parseInt(document.getElementById('ante-input').value);
+    const budget = document.getElementById('game-budget').value;
+    const stock = document.getElementById('stock-input').value;
 
     fetch('/api/set_game_settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ blind, ante })
+        body: JSON.stringify({ blind, ante, stock, budget})
     })
     .then(res => res.json())
     .then(data => {

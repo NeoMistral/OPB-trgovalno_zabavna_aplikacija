@@ -61,8 +61,15 @@
 <table id="portfolio-table">
     <thead>
         <tr>
-            <th>Stock</th>
-            <th>Amount Owned</th>
+            <th>Symbol</th>
+            <th>Amount</th>
+            <th>Value</th>
+            <th>Symbol</th>
+            <th>Amount</th>
+            <th>Value</th>
+            <th>Symbol</th>
+            <th>Amount</th>
+            <th>Value</th>
         </tr>
     </thead>
     <tbody>

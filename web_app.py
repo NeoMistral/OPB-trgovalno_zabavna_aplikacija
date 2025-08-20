@@ -59,21 +59,10 @@ def api_deal():
     session = request.environ.get('beaker.session')
     # get dealt cards
     player, dealer, community = poker_api.deal_cards()
-    balance = calculate_budget()
-    session["game_data"] = {
-        "round": 0,
-        "player_cards": player,
-        "dealer_cards": dealer,
-        "community_cards": community,
-        "bet": 0,
-        "won": 0,
-        "winner": "TBD",
-        "stock": None,
-        "budget": balance,
-        "blind": 1, # default blind
-        "ante": 1, # default ante
-        "round_when_bet": None
-    }
+    session["game_data"]["round"] = 0
+    session["game_data"]["player_cards"] = player
+    session["game_data"]["dealer_cards"] = dealer
+    session["game_data"]["community_cards"] = community
     cards = poker_api.convert_cards_for_js(player, dealer, community, 0) # round is always 0 here
     response.content_type = 'application/json'
     session.save()
@@ -121,11 +110,12 @@ def api_bet():
         game_data["player_cards"],
         game_data["dealer_cards"],
         game_data["community_cards"],
-        round
+        game_data["round"]
     )
     total_bet = bet + game_data.get("ante", 0) + game_data.get("blind", 0)
     get_data(total_bet, player_combo, dealer_combo)
-
+    funkcije.update_portfolio_brez_cene(session["user_id"], game_data["stock"], game_data["budget"])#stock, change
+    print("Cards", cards)
     response.content_type = 'application/json'
     session.save()
     return json.dumps(cards)
@@ -153,9 +143,18 @@ def api_fold():
 
 @route('/api/game-state', method='GET')
 def api_game_state():
+    # Try to get beaker session; may be None if middleware not applied
     session = request.environ.get('beaker.session')
+    game_data = {}
+    print('has beaker.session:', 'beaker.session' in request.environ)
+    print('session type:', type(request.environ.get('beaker.session')))
+    if session is not None:
+        # session behaves like a dict
+        game_data = session.get('game_data') or {}
+
     response.content_type = 'application/json'
-    return json.dumps(session.get('game_data', {}))
+    #print("Test",  game_data)
+    return json.dumps(game_data)
 
 # Route to serve static files (like CSS)
 @route('/static/<filepath:path>')
@@ -171,6 +170,10 @@ def set_game_settings():
     # get and set game data
     game_data = session.get("game_data", {})
     game_data = poker_api.set_game_data(game_data, int(data.get('blind', 1)), int(data.get('ante', 1)))
+    game_data["stock"] = data.get('stock')
+    game_data["budget"] = calculate_budget_non_api(session['user_id'], data.get('stock'))
+    game_data["bet"] = 0
+    game_data["won"] = 0
     session["game_data"] = game_data
     response.content_type = 'application/json'
     session.save()
@@ -228,15 +231,14 @@ def calculate_budget():
 
         user_id = session['user_id']
         portfolio = funkcije.get_user_portfolio(user_id)  # Expecting list of {'symbol': ..., 'amount': ...}
-        print(portfolio)
+        #print(portfolio)
         amount = 0
         for row in portfolio:
             if row.get("symbol") == symbol:
                 amount = row.get("amount", 0)
                 break
 
-        amount  
-
+        print("amount", amount)
         response.content_type = 'application/json'
         return json.dumps({'budget': amount})
 
@@ -246,6 +248,16 @@ def calculate_budget():
         print(e)
         return json.dumps({'error': str(e)})
 
+def calculate_budget_non_api(user_id, symbol):
+    portfolio = funkcije.get_user_portfolio(user_id)  # Expecting list of {'symbol': ..., 'amount': ...}
+    amount = 0
+    for row in portfolio:
+        if row.get("symbol") == symbol:
+            amount = row.get("amount", 0)
+            break
+
+    return amount
+    
 # get user portfolio
 @route('/api/portfolio')
 def api_portfolio():
@@ -258,10 +270,10 @@ def api_portfolio():
     data = {
         'username': session['username'],
         'balance': float(funkcije.get_user_balance(user_id)),
-        'portfolio': funkcije.get_user_portfolio(user_id)
+        'portfolio': funkcije.get_user_portfolio_all(user_id)
     }
     response.content_type = 'application/json'
-    print(data)
+    #print(data)
     return json.dumps(data)
 
 @route('/api/buy', method='POST')
