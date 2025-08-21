@@ -44,6 +44,36 @@ def get_data(bet, player_combo, dealer_combo):
         if conn:
             conn.close()
 
+def izracunaj_bet(simbol: str, stevilo: int) -> float:
+    conn = None
+    bet = 0.0
+    try:
+        conn, cur = povezava.ustvari_povezavo()
+        cur.execute("""
+            SELECT trenutna_cena 
+            FROM delnice 
+            WHERE simbol = %s
+            ORDER BY datum DESC
+            LIMIT 1;
+        """, (simbol,))
+        result = cur.fetchone()
+
+        if result:
+            trenutna_cena = float(result[0])
+            bet = trenutna_cena * stevilo
+            print(f"✅ {stevilo}x {simbol} po {trenutna_cena:.2f} = {bet:.2f} €")
+        else:
+            print(f"❌ Ni podatkov za delnico: {simbol}")   
+
+    except Exception as e:
+        print("❌ Napaka pri izračunu:", e)
+    finally:
+        if conn:
+            conn.close()
+
+    return bet
+
+
 # Indeks
 def osvezi_indeks():
     conn = None
