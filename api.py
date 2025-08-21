@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 import time
 from povezava import ustvari_povezavo
+from poker_index import osvezi_indeks
 
 load_dotenv(dotenv_path="key.env")
 
@@ -105,18 +106,22 @@ def main_loop(interval_seconds=30):
             conn.commit()
             cur.close()
             conn.close()
-
             print("✅ Novi podatki uspešno prestavljeni v delnice.")
-
         except Exception as e:
             print(f"❌ Napaka pri kopiranju v delnice: {e}")
+
+        try:
+            osvezi_indeks()
+        except Exception as e:
+            print(f"❌ Napaka pri osveževanju indeksa POKER: {e}")
 
         print(f"⏳ Čakam {interval_seconds} sekund pred naslednjo iteracijo.")
         time.sleep(interval_seconds)
 
 
 if __name__ == "__main__":
+    print("▶️ Zagon glavne zanke – osveževanje vsakih 30 sekund.")
     try:
-        main_loop(interval_seconds=30) 
+        main_loop(interval_seconds=30)
     except KeyboardInterrupt:
         print("\n🛑 Uporabnik je prekinil izvajanje. Izhod.")

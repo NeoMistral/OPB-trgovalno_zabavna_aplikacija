@@ -1,11 +1,8 @@
 import psycopg2
-from dotenv import load_dotenv
 from datetime import datetime
 import time
 import os
 import povezava
-
-load_dotenv(dotenv_path="key.env")
 
 # Uteži delnic
 utezi = {
@@ -30,11 +27,8 @@ def multiplier(hand):
     }.get(hand, 0)
 
 def get_data(bet, player_combo, dealer_combo):
-    conn, curr = povezava.ustvari_povezavo()
-    try:
-        
-
-        with conn.cursor() as cur:
+    try: 
+            conn, cur = povezava.ustvari_povezavo()
             cur.execute("""
                 INSERT INTO poker (bet, player_combo, dealer_combo)
                 VALUES (%s, %s, %s)
@@ -54,14 +48,7 @@ def get_data(bet, player_combo, dealer_combo):
 def osvezi_indeks():
     conn = None
     try:
-        conn = psycopg2.connect(
-            dbname=os.getenv("DB_NAME"),
-            user=os.getenv("DB_USER"),
-            password=os.getenv("DB_PASSWORD"),
-            host=os.getenv("DB_HOST"),
-            port=os.getenv("DB_PORT")
-        )
-        with conn.cursor() as cur:
+            conn, cur = povezava.ustvari_povezavo()
             cur.execute("""
                 SELECT simbol, trenutna_cena
                 FROM (
@@ -90,7 +77,7 @@ def osvezi_indeks():
                 market_cap = float(result[0])
 
             # Aktivne igre
-            cur.execute("SELECT bet, player_hand, dealer_hand FROM poker")
+            cur.execute("SELECT bet, player_combo, dealer_combo FROM poker")
             igre = cur.fetchall()
             delta = 0
             for bet, player, dealer in igre:
@@ -120,7 +107,7 @@ def osvezi_indeks():
             # Arhiv
             if igre:
                 cur.executemany("""
-                    INSERT INTO arhiv (tip, bet, player_hand, dealer_hand)
+                    INSERT INTO arhiv (tip, bet, player_combo, dealer_combo)
                     VALUES ('POKER', %s, %s, %s)
                 """, igre)
                 cur.execute("DELETE FROM poker")
@@ -133,15 +120,4 @@ def osvezi_indeks():
     finally:
         if conn:
             conn.close()
-
-# Zanka
-if __name__ == "__main__":
-    print("▶️ Zagon indeksa POKER – osveževanje vsakih 30 sekund.")
-    try:
-        while True:
-            start = time.time()
-            osvezi_indeks()
-            time.sleep(max(0, 30 - (time.time() - start)))
-    except KeyboardInterrupt:
-        print("\n⏹️ Prekinjeno s strani uporabnika.")
 
