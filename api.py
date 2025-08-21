@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import os
 from datetime import datetime
 import time
+from povezava import ustvari_povezavo
 
 load_dotenv(dotenv_path="key.env")
 
@@ -48,14 +49,7 @@ def save_to_db(data):
         return
 
     try:
-        conn = psycopg2.connect(
-            dbname=os.getenv("DB_NAME"),
-            user=os.getenv("DB_USER"),
-            password=os.getenv("DB_PASSWORD"),
-            host=os.getenv("DB_HOST"),
-            port=os.getenv("DB_PORT")
-        )
-        cur = conn.cursor()
+        conn, cur = ustvari_povezavo()
 
         query = """
         INSERT INTO delnice_temp (
@@ -90,14 +84,7 @@ def main_loop(interval_seconds=30):
         print(f"\n🔁 Začetek osveževanja podatkov ob {datetime.now()}")
 
         try:
-            conn = psycopg2.connect(
-                dbname=os.getenv("DB_NAME"),
-                user=os.getenv("DB_USER"),
-                password=os.getenv("DB_PASSWORD"),
-                host=os.getenv("DB_HOST"),
-                port=os.getenv("DB_PORT")
-            )
-            cur = conn.cursor()
+            conn, cur = ustvari_povezavo()
             cur.execute("TRUNCATE delnice_temp;")
             conn.commit()
             cur.close()
@@ -112,14 +99,7 @@ def main_loop(interval_seconds=30):
                 save_to_db(data)
 
         try:
-            conn = psycopg2.connect(
-                dbname=os.getenv("DB_NAME"),
-                user=os.getenv("DB_USER"),
-                password=os.getenv("DB_PASSWORD"),
-                host=os.getenv("DB_HOST"),
-                port=os.getenv("DB_PORT")
-            )
-            cur = conn.cursor()
+            conn, cur = ustvari_povezavo()
             cur.execute("DELETE FROM delnice WHERE simbol != 'POKER';")
             cur.execute("INSERT INTO delnice SELECT * FROM delnice_temp;")
             conn.commit()
