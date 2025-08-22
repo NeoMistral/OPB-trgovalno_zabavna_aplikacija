@@ -1,4 +1,4 @@
-import config
+import baze.config as config
 
 database = config.database
 host = config.host

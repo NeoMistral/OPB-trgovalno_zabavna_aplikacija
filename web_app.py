@@ -1,11 +1,10 @@
 from bottle import run, route, template, static_file, response, request, default_app
 from beaker.middleware import SessionMiddleware
-import poker_api
-import poker_logic as Pl
-import poker_index as Pi
+import poker.poker_api as poker_api
+import poker.poker_index as Pi
 import json
-import funkcije
-from poker_index import get_data
+import baze.funkcije as funkcije
+
 """
 In views there are templates,
 in static we have css files and images

@@ -1,4 +1,4 @@
-from povezava import ustvari_povezavo
+from baze.povezava import ustvari_povezavo
 
 from psycopg2 import sql, errors
 

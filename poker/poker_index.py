@@ -2,7 +2,7 @@ import psycopg2
 from datetime import datetime
 import time
 import os
-import povezava
+import baze.povezava as povezava
 
 # Uteži delnic
 utezi = {
