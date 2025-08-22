@@ -108,7 +108,7 @@ def has_blind(blind, player_combination):
     if player_combination == "Straight":
         blind *= 2
     elif player_combination == "Flush":
-        blind *= 2.5
+        blind *= 3
     elif player_combination == "Full House":
         blind *= 4
     elif player_combination == "Four of a Kind":  

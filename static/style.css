@@ -1,6 +1,6 @@
 /* Base styling with a brighter dark background */
 body {
-    background-color: #1e2a23; /* Dark gray instead of near-black */
+    background-color: #61aa7f; /* Dark gray instead of near-black */
     color: #f0f0f0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
@@ -30,7 +30,7 @@ body {
 
 /* Header with orange-red color */
 h1 {
-    color: #3f863c; /* Orange-red */
+    color: #000000; /* Orange-red */
     padding: 8px;
     margin: 0;
     text-align: center;
@@ -62,12 +62,12 @@ footer {
 
 .btn {
     display: inline-block;
-    padding: 10px 20px;
+    padding: 10px 10px;
     background-color: #ff5722;
     color: white;
     text-decoration: none;
     border-radius: 5px;
-    margin-top: 20px;
+    margin-top: 10px;
     font-weight: bold;
     transition: background-color 0.3s ease;
 }
@@ -285,7 +285,7 @@ footer {
 }
 
 #stock-table thead {
-    background-color: #1e0d0d;
+    background-color: #005d1f85;
 }
 
 #portfolio-table {

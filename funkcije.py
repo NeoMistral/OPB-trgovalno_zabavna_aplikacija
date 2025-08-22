@@ -9,13 +9,15 @@ def registracija_uporabnika(ime, geslo):
     
     try:
         insert_query = sql.SQL(
-            "INSERT INTO uporabniki (uporabnisko_ime, geslo, stanje, vrednostni_portfeljev) VALUES (%s, %s, 10000, 0)"
+            "INSERT INTO uporabniki (uporabnisko_ime, geslo, stanje, vrednostni_portfeljev) VALUES (%s, %s, 100000, 0)"
         )
         cur.execute(insert_query, (ime, geslo))
         conn.commit()
         print("User registered successfully.")
+        return True
     except errors.UniqueViolation:
         print("Username already exists.")
+        return False
     except Exception as e:
         print(f"Error: {e}")
     finally:

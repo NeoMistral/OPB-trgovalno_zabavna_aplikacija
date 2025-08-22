@@ -143,7 +143,7 @@
 
         const result = await res.json();
 
-        if (res.ok && result.status === 'ok') {
+        if (res.ok && result.error === "ok") {
             //alert('Sign-up successful! You can now log in.');
             closeModal('signupModal');
         } else {
