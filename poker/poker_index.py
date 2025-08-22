@@ -14,8 +14,16 @@ utezi = {
     'ORCL': 0.01, 'EOG': 0.01, 'RTX': 0.01
 }
 
-# Uteži glede na kombinacijo
 def multiplier(hand):
+    """
+    Returns the multiplier for a given poker hand.
+
+    Args:
+        hand (str): Name of the poker hand (e.g., "Full House", "Royal Flush").
+
+    Returns:
+        float: Multiplier value. Higher for stronger hands, 0 if unknown.
+    """
     hand = (hand or "").lower()
     return {
         'Royal Flush': 500,
@@ -27,14 +35,24 @@ def multiplier(hand):
     }.get(hand, 0)
 
 def get_data(bet, player_combo, dealer_combo):
-    try: 
-            conn, cur = povezava.ustvari_povezavo()
-            cur.execute("""
-                INSERT INTO poker (bet, player_combo, dealer_combo)
-                VALUES (%s, %s, %s)
-            """, (bet, str(player_combo), str(dealer_combo)))
+    """
+    Inserts a new poker game record into the database.
 
-            conn.commit()
+    Args:
+        bet (float): Amount of the player's bet.
+        player_combo (str): Player's poker hand.
+        dealer_combo (str): Dealer's poker hand.
+
+    Returns:
+        None
+    """
+    try:
+        conn, cur = povezava.ustvari_povezavo()
+        cur.execute("""
+            INSERT INTO poker (bet, player_combo, dealer_combo)
+            VALUES (%s, %s, %s)
+        """, (bet, str(player_combo), str(dealer_combo)))
+        conn.commit()
 
     except Exception as e:
         print("Napaka pri zapisu v bazo:", e)
@@ -45,6 +63,17 @@ def get_data(bet, player_combo, dealer_combo):
             conn.close()
 
 def izracunaj_bet(simbol: str, stevilo: int) -> float:
+    """
+    Calculates the total bet value based on the latest stock price.
+
+    Args:
+        simbol (str): Stock symbol (e.g., "AAPL").
+        stevilo (int): Number of shares to calculate with.
+
+    Returns:
+        float: Total bet value (price * quantity). Returns 0 if stock not found.
+    """
+
     conn = None
     bet = 0.0
     try:
@@ -74,8 +103,20 @@ def izracunaj_bet(simbol: str, stevilo: int) -> float:
     return bet
 
 
-# Indeks
 def osvezi_indeks():
+    """
+    Refreshes the POKER index by combining stock market data with poker results.
+
+    Steps:
+        1. Fetches the latest stock prices and applies predefined weights.
+        2. Calculates the base price of the POKER index.
+        3. Adjusts market cap based on active poker game results.
+        4. Updates the index price and market cap in the database.
+        5. Archives completed poker games.
+
+    Returns:
+        None
+    """
     conn = None
     try:
             conn, cur = povezava.ustvari_povezavo()
