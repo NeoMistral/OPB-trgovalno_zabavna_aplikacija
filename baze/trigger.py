@@ -9,6 +9,7 @@ try:
     cur.execute("DROP TRIGGER IF EXISTS trg_update_vrednost_on_kolicina ON portfelji;")
     cur.execute("DROP TRIGGER IF EXISTS trg_update_vrednost ON portfelji;")
 
+    # Sums up the total value of all portfolios for a user and updates the user's total portfolio value
     create_function_uporabniki = sql.SQL("""
         CREATE OR REPLACE FUNCTION update_vrednostni_portfelji()
         RETURNS TRIGGER AS $$
@@ -25,7 +26,7 @@ try:
         END;
         $$ LANGUAGE plpgsql;
     """)
-
+    # Trigger to call the function after insert, update, or delete on the "portfelji" table
     create_trigger_uporabniki = sql.SQL("""
         CREATE TRIGGER trg_update_vrednost
         AFTER INSERT OR UPDATE OR DELETE ON portfelji
@@ -33,6 +34,7 @@ try:
         EXECUTE FUNCTION update_vrednostni_portfelji();
     """)
 
+    # Updates the value of all portfolios when a new stock price is inserted
     create_function_delnice = sql.SQL("""
         CREATE OR REPLACE FUNCTION update_portfelji_on_price_insert()
         RETURNS TRIGGER AS $$
@@ -45,13 +47,14 @@ try:
         $$ LANGUAGE plpgsql;
     """)
 
+    # Trigger to call the function after insert on the "delnice" table
     create_trigger_delnice = sql.SQL("""
         CREATE TRIGGER trg_update_portfelji_price_insert
         AFTER INSERT ON delnice
         FOR EACH ROW
         EXECUTE FUNCTION update_portfelji_on_price_insert();
     """)
-    
+    # Updates the value of a portfolio when its quantity changes 
     create_function_portfelji = sql.SQL("""
         CREATE OR REPLACE FUNCTION update_vrednost_on_kolicina_change()
         RETURNS TRIGGER AS $$
@@ -75,6 +78,7 @@ try:
         $$ LANGUAGE plpgsql;
     """)
 
+    # Trigger to call the function before update of "kolicina" on the "portfelji" table
     create_trigger_portfelji = sql.SQL("""
         CREATE TRIGGER trg_update_vrednost_on_kolicina
         BEFORE UPDATE OF kolicina ON portfelji

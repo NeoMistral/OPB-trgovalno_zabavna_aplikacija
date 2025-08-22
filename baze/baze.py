@@ -1,7 +1,7 @@
 import psycopg2, psycopg2.extensions, psycopg2.extras
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 
-import config
+import baze.config as config
 
 database = config.database
 host = config.host
@@ -33,6 +33,7 @@ try:
     # cur.execute(drop_vrednostni_papirji)
     # za commentiranje uporabi ctrl+'
 
+    # SQL command to create table "Uporabniki"
     create_uporabniki = """
     CREATE TABLE IF NOT EXISTS Uporabniki (
         uporabnik_id SERIAL PRIMARY KEY,
@@ -61,6 +62,7 @@ try:
     # );
     # """
     
+    # SQL command to create table "Transakcije"
     create_transakcije = """
     CREATE TABLE IF NOT EXISTS Transakcije (
         transakcija_id SERIAL PRIMARY KEY,
@@ -72,7 +74,7 @@ try:
         FOREIGN KEY (uporabnik_id) REFERENCES Uporabniki(uporabnik_id)
     );
     """
-    
+    # SQL command to create table "Portfelji"
     create_portfelji = """
     CREATE TABLE IF NOT EXISTS Portfelji (
         portfelj_id SERIAL PRIMARY KEY,
@@ -83,7 +85,7 @@ try:
         FOREIGN KEY (uporabnik_id) REFERENCES Uporabniki(uporabnik_id)
     );
     """
-    
+    # SQL command to create table "Poker"
     create_poker = """
     CREATE TABLE IF NOT EXISTS Poker (
         igrana_roka_id SERIAL PRIMARY KEY,

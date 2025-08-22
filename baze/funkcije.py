@@ -4,7 +4,16 @@ from psycopg2 import sql, errors
 
 
 def registracija_uporabnika(ime, geslo):
-    
+    """
+    Registers a new user in the database with an initial balance and empty portfolio.
+
+    Args:
+        ime (str): Username
+        geslo (str): Password
+
+    Returns:
+        bool: True if registration was successful, False if username already exists
+    """
     conn, cur = ustvari_povezavo()
     
     try:
@@ -27,7 +36,16 @@ def registracija_uporabnika(ime, geslo):
             
 def get_user(uporabnisko_ime, geslo):
     conn, cur = ustvari_povezavo()
+    """
+    Retrieves a user from the database.
 
+    Args:
+        uporabnisko_ime (str): Username
+        geslo (str): Password
+
+    Returns:
+        tuple | None: User record if found, otherwise None
+    """
     try:
         select_query = sql.SQL(
             "SELECT * FROM uporabniki WHERE uporabnisko_ime = %s AND geslo = %s"
@@ -43,7 +61,14 @@ def get_user(uporabnisko_ime, geslo):
             conn.close()
             
 def get_stock_prices():
-    
+    """
+    Retrieves all stock symbols and their current prices.
+
+    Returns:
+        list[dict]: A list of dictionaries with keys:
+                    - 'symbol': stock symbol
+                    - 'price': stock price
+    """    
     conn, cur = ustvari_povezavo()
     
     try:
@@ -73,7 +98,15 @@ def get_stock_prices():
             conn.close()
             
 def get_user_balance(user_id):
-    
+    """
+    Retrieves a user's account balance.
+
+    Args:
+        user_id (int): User ID
+
+    Returns:
+        float | None: Balance if user exists, else None
+    """    
     conn, cur = ustvari_povezavo()
     
     try:
@@ -91,6 +124,17 @@ def get_user_balance(user_id):
             conn.close()
             
 def get_user_portfolio(user_id):
+    """
+    Retrieves a user's portfolio (symbol + quantity).
+
+    Args:
+        user_id (int): User ID
+
+    Returns:
+        list[dict]: List of dictionaries with keys:
+                    - 'symbol'
+                    - 'amount'
+    """
     conn, cur = ustvari_povezavo()
 
     try:
@@ -114,6 +158,18 @@ def get_user_portfolio(user_id):
             conn.close()
             
 def get_user_portfolio_all(user_id):
+    """
+    Retrieves full portfolio (symbol, quantity, value).
+
+    Args:
+        user_id (int): User ID
+
+    Returns:
+        list[dict]: List with keys:
+                    - 'symbol'
+                    - 'amount'
+                    - 'value'
+    """
     conn, cur = ustvari_povezavo()
 
     try:
@@ -138,7 +194,15 @@ def get_user_portfolio_all(user_id):
             
             
 def get_user_balance(user_id):
-    
+    """
+    Inserts a transaction record for a user.
+
+    Args:
+        user_id (int): User ID
+        stock_id (str): Stock symbol
+        quantity (int): Quantity of stock
+        value (float): Transaction value
+    """    
     conn, cur = ustvari_povezavo()
     
     try:
@@ -156,7 +220,15 @@ def get_user_balance(user_id):
             conn.close()
 
 def add_transaction(user_id, stock_id, quantity, value):
-    
+    """
+    Inserts a transaction record for a user.
+
+    Args:
+        user_id (int): User ID
+        stock_id (str): Stock symbol
+        quantity (int): Quantity of stock
+        value (float): Transaction value
+    """   
     conn, cur = ustvari_povezavo()
     
     try:
@@ -174,7 +246,13 @@ def add_transaction(user_id, stock_id, quantity, value):
             conn.close()         
             
 def update_user_balance(user_id, balance_change):
-    
+    """
+    Updates a user's balance by adding/subtracting a value.
+
+    Args:
+        user_id (int): User ID
+        balance_change (float): Amount to change balance
+    """    
     conn, cur = ustvari_povezavo()
     
     try:
@@ -193,7 +271,15 @@ def update_user_balance(user_id, balance_change):
             
             
 def update_portfolio(user_id, stock_id, quantity, value):
-    
+    """
+    Updates a user's portfolio (quantity + value).
+
+    Args:
+        user_id (int): User ID
+        stock_id (str): Stock symbol
+        quantity (int): Quantity change
+        value (float): Updated stock value
+    """    
     conn, cur = ustvari_povezavo()
     
     try:
@@ -211,7 +297,14 @@ def update_portfolio(user_id, stock_id, quantity, value):
             conn.close()
             
 def update_portfolio_brez_cene(user_id, stock_id, quantity):
-    
+    """
+    Updates only the quantity of a stock in the user's portfolio.
+
+    Args:
+        user_id (int): User ID
+        stock_id (str): Stock symbol
+        quantity (int): New stock quantity
+    """    
     conn, cur = ustvari_povezavo()
     print(quantity)
     try:
@@ -229,11 +322,23 @@ def update_portfolio_brez_cene(user_id, stock_id, quantity):
             conn.close()
 
 def can_buy(user_id, quantity, price):
+    """
+    Checks if a user has enough balance to buy a given quantity of stock.
+
+    Returns:
+        bool: True if user can buy, else False
+    """
     if get_user_balance(user_id) < quantity * price:
         return False
     return True
 
 def can_sell(user, symbol, quantity):
+    """
+    Checks if a user has enough of a stock to sell.
+
+    Returns:
+        bool: True if user can sell, else False
+    """
     quant = [item for item in get_user_portfolio(user) if item["symbol"] == symbol]
     stock = quant[0] if quant else None
     if not stock:
@@ -243,6 +348,12 @@ def can_sell(user, symbol, quantity):
     return True
 
 def check_if_user_exists(uporabnisko_ime, geslo):
+    """
+    Checks if a user with given username and password exists.
+
+    Returns:
+        bool: True if user exists, else False
+    """
     conn, cur = ustvari_povezavo()
 
     try:
@@ -260,6 +371,12 @@ def check_if_user_exists(uporabnisko_ime, geslo):
             conn.close()
             
 def get_user_id(uporabnisko_ime):
+    """
+    Retrieves the user ID for a given username.
+
+    Returns:
+        int | None: User ID if found, else None
+    """
     conn, cur = ustvari_povezavo()
     
     try:
@@ -277,6 +394,12 @@ def get_user_id(uporabnisko_ime):
             conn.close()
             
 def insert_user_stocks(user_id):
+    """
+    Inserts default stock entries into a user's portfolio with quantity=0 and value=0.
+
+    Args:
+        user_id (int): User ID
+    """
     conn, cur = ustvari_povezavo()
     
     simboli = [
