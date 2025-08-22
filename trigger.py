@@ -33,7 +33,6 @@ try:
         EXECUTE FUNCTION update_vrednostni_portfelji();
     """)
 
-    # --- Trigger function + trigger for delnice insert ---
     create_function_delnice = sql.SQL("""
         CREATE OR REPLACE FUNCTION update_portfelji_on_price_insert()
         RETURNS TRIGGER AS $$
@@ -54,38 +53,27 @@ try:
     """)
     
     create_function_portfelji = sql.SQL("""
-CREATE OR REPLACE FUNCTION update_vrednost_on_kolicina_change()
-RETURNS TRIGGER AS $$
-DECLARE
-    v_trenutna_cena numeric;
-BEGIN
+        CREATE OR REPLACE FUNCTION update_vrednost_on_kolicina_change()
+        RETURNS TRIGGER AS $$
+        DECLARE
+            v_trenutna_cena numeric;
+        BEGIN
 
-SELECT c.trenutna_cena
-INTO v_trenutna_cena
-FROM delnice c
-WHERE c.simbol = NEW.simbol;
+        SELECT c.trenutna_cena
+        INTO v_trenutna_cena
+        FROM delnice c
+        WHERE c.simbol = NEW.simbol;
 
-IF v_trenutna_cena IS NULL THEN
-    RAISE EXCEPTION 'No trenutna_cena found for simbol = %', NEW.simbol;
-END IF;
+        IF v_trenutna_cena IS NULL THEN
+            RAISE EXCEPTION 'No trenutna_cena found for simbol = %', NEW.simbol;
+        END IF;
 
-NEW.vrednost := COALESCE(NEW.kolicina, 0) * v_trenutna_cena;
+        NEW.vrednost := COALESCE(NEW.kolicina, 0) * v_trenutna_cena;
 
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-""")
-
-    # --- Trigger function + trigger for portfelji.kolicina update ---
-    # create_function_portfelji = sql.SQL("""
-    #     CREATE OR REPLACE FUNCTION update_vrednost_on_kolicina_change()
-    #     RETURNS TRIGGER AS $$
-    #     BEGIN
-    #         NEW.vrednost := NEW.kolicina * trenutna_cena;
-    #         RETURN NEW;
-    #     END;
-    #     $$ LANGUAGE plpgsql;
-    # """)
+            RETURN NEW;
+        END;
+        $$ LANGUAGE plpgsql;
+    """)
 
     create_trigger_portfelji = sql.SQL("""
         CREATE TRIGGER trg_update_vrednost_on_kolicina
