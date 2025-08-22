@@ -142,6 +142,7 @@ def api_game_state():
     game_data = {}
     if session is not None:
         game_data = session.get('game_data') or {}
+    print(game_data["round"])
     response.content_type = 'application/json'
     return json.dumps(game_data)
 

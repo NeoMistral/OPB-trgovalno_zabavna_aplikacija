@@ -89,7 +89,7 @@ def get_stock_prices():
         for name, price in zip(names, prices):
             out.append({'symbol': name, 'price': float(price)})
 
-        return out[:29]
+        return out[:30]
     except Exception as e:
         print(f"Error: {e}")
     finally:
