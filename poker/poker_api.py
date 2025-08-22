@@ -1,5 +1,5 @@
 import random
-import poker_logic as Pl
+import poker.poker_logic as Pl
 
 # Function to call when user wants cards dealt
 def deal_cards():

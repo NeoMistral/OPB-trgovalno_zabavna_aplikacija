@@ -1,11 +1,10 @@
 from bottle import run, route, template, static_file, response, request, default_app
 from beaker.middleware import SessionMiddleware
-import poker_api
-import poker_logic as Pl
-import poker_index as Pi
+import poker.poker_api as poker_api
+import poker.poker_index as Pi
 import json
-import funkcije
-from poker_index import get_data
+import baze.funkcije as funkcije
+
 """
 In views there are templates,
 in static we have css files and images
@@ -113,7 +112,8 @@ def api_bet():
         game_data["round"]
     )
     total_bet = bet + game_data.get("ante", 0) + game_data.get("blind", 0)
-    get_data(total_bet, player_combo, dealer_combo)
+    amount = Pi.izracunaj_bet(game_data["stock"], total_bet)
+    Pi.get_data( amount, player_combo, dealer_combo)
     funkcije.update_portfolio_brez_cene(session["user_id"], game_data["stock"], game_data["budget"])#stock, change
     print("Cards", cards)
     response.content_type = 'application/json'
@@ -125,7 +125,7 @@ def api_fold():
     session = request.environ.get("beaker.session")
     game_data, player_combo, dealer_combo = poker_api.end_game_by_fold(game_data=session["game_data"])
     session["game_data"] = game_data
-
+    game_data["round"] = 3
     cards = poker_api.convert_cards_for_js(
         game_data["player_cards"],
         game_data["dealer_cards"],
@@ -134,8 +134,8 @@ def api_fold():
     )
     
     funkcije.update_portfolio_brez_cene(session["user_id"], game_data["stock"], game_data["budget"])#stock, change
-
-    Pi.get_data(game_data["ante"] + game_data["blind"], player_combo, dealer_combo)
+    amount = Pi.izracunaj_bet(game_data["stock"], game_data["ante"] + game_data["blind"])
+    Pi.get_data( amount, player_combo, dealer_combo)
     
     response.content_type = 'application/json'
     session.save()
@@ -151,7 +151,7 @@ def api_game_state():
     if session is not None:
         # session behaves like a dict
         game_data = session.get('game_data') or {}
-
+    print(game_data["round"])
     response.content_type = 'application/json'
     #print("Test",  game_data)
     return json.dumps(game_data)
@@ -174,10 +174,43 @@ def set_game_settings():
     game_data["budget"] = calculate_budget_non_api(session['user_id'], data.get('stock'))
     game_data["bet"] = 0
     game_data["won"] = 0
+    game_data["round"] = -1
     session["game_data"] = game_data
     response.content_type = 'application/json'
     session.save()
     return json.dumps({'status': 'success'})
+
+@route('/api/canBuy', method=['GET', 'POST'])  # allow GET too if your frontend uses it
+def can_buy():
+    session = request.environ.get("beaker.session")
+    if session is None:
+        response.status = 500
+        response.content_type = 'application/json'
+        return json.dumps({'error': 'Session not available'})
+
+    game_data = session.get("game_data") or {}
+
+    # Safe reads with defaults
+    round_ = game_data.get("round", 0)
+    blind  = game_data.get("blind")
+    ante   = game_data.get("ante")
+    budget = game_data.get("budget")
+
+    # Multiplier by round
+    multiplier = 4
+
+    required = (blind + ante) * multiplier
+    can = budget >= required
+    if can == False :
+        game_data["round"] = -2
+        session["game_data"] = game_data
+        session.save()
+    response.content_type = 'application/json'
+    # No session.save(); we didn't mutate session
+    return json.dumps({
+        'can': can,
+    })
+    
 
 @route('/login', method='POST')
 def login():
@@ -202,10 +235,12 @@ def login():
 def signup():
     username = request.forms.get('username')
     password = request.forms.get('password')
-    funkcije.registracija_uporabnika(username, password)
-    funkcije.insert_user_stocks(funkcije.get_user_id(username))
+    isOk = funkcije.registracija_uporabnika(username, password)
+    if isOk:
+        funkcije.insert_user_stocks(funkcije.get_user_id(username))
     response.content_type = 'application/json'
-    return json.dumps({'status': 'ok'})
+    error = "Username already exists" if isOk == False else "ok"
+    return json.dumps({'error': error})
 
 @route('/api/sessionLogInCheck')
 def api_session():
@@ -289,6 +324,7 @@ def api_buy():
     value = -data['price'] * data['quantity']
     funkcije.update_user_balance(session['user_id'], value)
     funkcije.update_portfolio(session['user_id'], data['symbol'], data['quantity'], data['price'])
+    funkcije.add_transaction(session['user_id'], data['symbol'], data['quantity'], data['price'] * data['quantity'])
     return {'status': 'ok'}
 
 @route('/api/sell', method='POST')
@@ -304,6 +340,7 @@ def api_sell():
     value = data['price'] * data['quantity']
     funkcije.update_user_balance(session['user_id'], value)
     funkcije.update_portfolio(session['user_id'], data['symbol'], -data['quantity'], data['price'])
+    funkcije.add_transaction(session['user_id'], data['symbol'], -data['quantity'], data['price'] * data['quantity'])
     return {'status': 'ok'}
 
 app = SessionMiddleware(default_app(), session_opts)

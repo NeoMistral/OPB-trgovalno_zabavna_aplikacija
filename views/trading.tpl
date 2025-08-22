@@ -57,7 +57,6 @@
     <!-- JS will populate this -->
 </div>
 
-<h2>Portfolio</h2>
 <table id="portfolio-table">
     <thead>
         <tr>
@@ -113,18 +112,30 @@
         const tableBody = document.getElementById('portfolio-table').getElementsByTagName('tbody')[0];
         tableBody.innerHTML = '';
 
-        data.portfolio.forEach(item => {
-            const row = document.createElement('tr');
-            const cellSymbol = document.createElement('td');
-            const cellAmount = document.createElement('td');
+        for (let i = 0; i < data.portfolio.length; i += 3) {
+            const row = document.createElement('tr')
 
-            cellSymbol.textContent = item.symbol;
-            cellAmount.textContent = item.amount;
+            for (let j=0; j<3; j++) {
+                if (i+j < data.portfolio.length){
+                    const cellSymbol = document.createElement('td');
+                    const cellAmount = document.createElement('td');
+                    const cellPrice = document.createElement('td');
+                    cellSymbol.textContent = data.portfolio[i+j].symbol;
+                    cellAmount.textContent = data.portfolio[i+j].amount;
+                    cellPrice.textContent = `$${data.portfolio[i+j].value}`;
 
-            row.appendChild(cellSymbol);
-            row.appendChild(cellAmount);
-            tableBody.appendChild(row);
-        });
+                    row.appendChild(cellSymbol);
+                    row.appendChild(cellAmount);
+                    row.appendChild(cellPrice)
+                    tableBody.appendChild(row);
+                } else {
+                    row.appendChild(document.createElement('td'));
+                    row.appendChild(document.createElement('td'));
+                    row.appendChild(document.createElement('td'));
+                    
+                }
+            }
+        }
     }
     updateUserPortfolioTable();
     setInterval(updateUserPortfolioTable, 10000); // optional: update every 10s

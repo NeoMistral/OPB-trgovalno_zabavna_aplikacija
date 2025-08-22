@@ -1,5 +1,5 @@
 from psycopg2 import sql
-from povezava import ustvari_povezavo  
+from baze.povezava import ustvari_povezavo  
 
 conn, cur = ustvari_povezavo()
 

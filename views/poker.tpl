@@ -7,13 +7,11 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <h1> Texas Hold'em Poker</h1>
 <div class="table-container">
 
-    
     <!-- Card Layout -->
     <div class="card-area">
-        
+        <h1> Texas Hold'em Poker</h1>
         <div class="card-section">
             <h2>Dealer</h2>
             <div class="top-cards" id="top-cards">
@@ -59,19 +57,19 @@
             <!-- Input fields for blind and ante -->
             <label>
                 Blind:
-                <input type="number" id="blind-input" min="0" value="1">
+                <input type="number" id="blind-input" min="1" value="1">
             </label><br>
 
             <label>
                 Ante:
-                <input type="number" id="ante-input" min="0" value="1">
+                <input type="number" id="ante-input" min="1" value="1">
             </label><br>
 
             <button id="btn-set_values" class="btn" onclick="setGameSettings()">Set Values</button>
         </div>
 
         <div class="button-box">
-            <button id="btn-deal_cards" class ="btn" onclick="dealCards()">Deal Cards</button>
+            <button id="btn-deal_cards" class ="btn" onclick="dealCards()" disabled>Deal Cards</button>
             <button id="btn-check" class ="btn" onclick="check()" disabled>Check</button>
             <button id="btn-bet" class ="btn" onclick="bet()" disabled>Bet</button>
         </div>
@@ -130,6 +128,7 @@ function setGameSettings() {
     })
     .then(res => res.json())
     .then(data => {
+        check_if_can_bet();
         updateGameInfo(); // Refresh game info
     })
     .catch(err => console.error("Failed to set settings", err));
@@ -162,12 +161,51 @@ function updateGameInfo() {
                 checkBtn.disabled = false, betBtn.disabled = false;
                 checkBtn.innerText = "Fold";
                 checkBtn.setAttribute("onclick", "fold()");
+            } else if (data.round === -1) {
+                betBtn.disabled = true, checkBtn.disabled = true;
+                dealBtn.disabled = false;
+                setValuesBtn.disabled = false;
+                checkBtn.innerText = "Check";
+                checkBtn.setAttribute("onclick", "check()");
+            } else if (data.round === -2) {
+                betBtn.disabled = true, checkBtn.disabled = true;
+                dealBtn.disabled = true;
+                setValuesBtn.disabled = false;
+                checkBtn.innerText = "Check";
+                checkBtn.setAttribute("onclick", "check()");
             } else {
                 dealBtn.disabled = false, checkBtn.disabled = true;
                 betBtn.disabled = true, setValuesBtn.disabled = false;
             }
         })
         .catch(err => console.error("Failed to load game state", err));
+}
+
+function check_if_can_bet() {
+  fetch('/api/canBuy', { method: 'POST' }) // or GET if you kept it allowed
+    .then(res => res.json())
+    .then(data => {
+      const canBet = data.can === true;
+
+      const dealBtn = document.getElementById("btn-deal_cards");
+      const checkBtn = document.getElementById("btn-check");
+      const betBtn = document.getElementById("btn-bet");
+      const setValuesBtn = document.getElementById("btn-set_values");
+
+      if (canBet) {
+        dealBtn.disabled = true;
+        checkBtn.disabled = false;
+        betBtn.disabled = false;
+        setValuesBtn.disabled = true;
+      } else {
+        dealBtn.disabled = true;
+        checkBtn.disabled = true;
+        betBtn.disabled = true;
+        setValuesBtn.disabled = false;
+        alert('Insufficient funds');
+      }
+    })
+    .catch(err => console.error("Failed to check bet state", err));
 }
 
 function fold() {
