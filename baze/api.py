@@ -4,8 +4,8 @@ from dotenv import load_dotenv
 import os
 from datetime import datetime
 import time
-from baze.povezava import ustvari_povezavo
-from poker.poker_index import osvezi_indeks
+from povezava import ustvari_povezavo
+from poker_index import osvezi_indeks
 
 # Load API keys and secrets from key.env file
 load_dotenv(dotenv_path="key.env")

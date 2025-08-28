@@ -1,11 +1,16 @@
-import baze.config as config
+import os
+import configparser
 
-database = config.database
-host = config.host
-port = config.port
-user = config.user
-password = config.password
+# Path to config file
+config_file = os.path.join(os.path.dirname(__file__), 'baza.config')
+config = configparser.ConfigParser()
+config.read(config_file)
 
+database = config.get('DATABASE', 'database')
+host = config.get('DATABASE', 'host')
+port = config.get('DATABASE', 'port')
+user = config.get('DATABASE', 'user')
+password = config.get('DATABASE', 'password')
 
 def ustvari_povezavo():
     """

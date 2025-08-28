@@ -1,7 +1,7 @@
 import psycopg2, psycopg2.extensions, psycopg2.extras
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 
-import baze.config as config
+import config as config
 
 database = config.database
 host = config.host
